@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import {
     ChevronLeft, User, Music, Layout, Wand2, CheckCircle2,
-    MessageSquare, Upload, Type, X, Loader2, Sparkles, Users
+    MessageSquare, Upload, Type, X, Loader2, Sparkles, Users, Settings, Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,6 +30,9 @@ interface Speaker {
     id: string;
     name: string;
     color: string;
+    avatarId?: number;
+    gender?: 'male' | 'female';
+    voiceId?: number;
 }
 
 interface Message {
@@ -37,12 +40,17 @@ interface Message {
     text: string;
 }
 
+const videoLengths = [
+    { id: '30', name: '30 Seconds', desc: 'Quick summary' },
+    { id: '60', name: '60 Seconds', desc: 'Standard depth' },
+    { id: '90', name: '90 Seconds', desc: 'Detailed deep dive' },
+];
+
 const CreateVideo = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [selectedAvatar, setSelectedAvatar] = useState<number | null>(null);
-    const [selectedAudio, setSelectedAudio] = useState<number | null>(null);
     const [selectedTheme, setSelectedTheme] = useState<number | null>(null);
+    const [selectedVideoLength, setSelectedVideoLength] = useState<string>('60');
 
     // Chat Input State
     const [inputMode, setInputMode] = useState<'screenshot' | 'text'>('screenshot');
@@ -53,6 +61,7 @@ const CreateVideo = () => {
     // Analysis State
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResult, setAnalysisResult] = useState<{ speakers: Speaker[], messages: Message[] } | null>(null);
+    const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -94,7 +103,14 @@ const CreateVideo = () => {
 
             const result = await response.json();
             if (result.success) {
-                setAnalysisResult(result.data);
+                // Initialize speakers with default avatars/genders/voices if missing
+                const speakers = result.data.speakers.map((s: Speaker) => ({
+                    ...s,
+                    avatarId: s.avatarId || 1,
+                    gender: s.gender || 'male',
+                    voiceId: s.voiceId || (s.gender === 'female' ? 2 : 1)
+                }));
+                setAnalysisResult({ ...result.data, speakers });
             } else {
                 alert(result.message || 'Analysis failed');
             }
@@ -106,20 +122,27 @@ const CreateVideo = () => {
         }
     };
 
+    const updateSpeaker = (id: string, updates: Partial<Speaker>) => {
+        if (!analysisResult) return;
+        setAnalysisResult({
+            ...analysisResult,
+            speakers: analysisResult.speakers.map((s: Speaker) => s.id === id ? { ...s, ...updates } : s)
+        });
+    };
+
     const handleGenerate = () => {
         if (!analysisResult) {
             alert('Please analyze your chat content first.');
             return;
         }
-        if (!selectedAvatar || !selectedAudio || !selectedTheme) {
-            alert('Please select all options before generating.');
+        if (!selectedTheme) {
+            alert('Please select a theme before generating.');
             return;
         }
         console.log('Generating video with:', {
             analysisResult,
-            selectedAvatar,
-            selectedAudio,
-            selectedTheme
+            selectedTheme,
+            selectedVideoLength
         });
         alert('Video generation started!');
     };
@@ -233,107 +256,145 @@ const CreateVideo = () => {
                     </div>
                 </section>
 
-                {/* Analysis Results (New Section) */}
+                {/* Analysis & Speaker Review */}
                 {analysisResult && (
-                    <section className="animate-in slide-in-from-bottom duration-500">
-                        <div className="flex items-center gap-2 mb-6 text-orange-500">
-                            <Users size={20} />
-                            <h2 className="text-xl font-bold">2. Review Speakers & Script</h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Speakers List */}
-                            <div className="md:col-span-1 space-y-4">
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500">Detected Speakers</h3>
-                                {analysisResult.speakers.map((speaker, idx) => (
-                                    <div key={speaker.id} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/40 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
-                                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-sm" style={{ backgroundColor: speaker.color || '#6366f1' }}>
-                                            {speaker.name.charAt(0)}
+                    <div className="space-y-12">
+                        <section className="animate-in slide-in-from-bottom duration-500">
+                            <div className="flex items-center gap-2 mb-6 text-orange-500">
+                                <Users size={20} />
+                                <h2 className="text-xl font-bold">2. Review Speakers</h2>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {analysisResult.speakers.map((speaker: Speaker) => (
+                                    <div
+                                        key={speaker.id}
+                                        onClick={() => setEditingSpeakerId(editingSpeakerId === speaker.id ? null : speaker.id)}
+                                        className={`p-4 rounded-2xl border-2 transition-all cursor-pointer group bg-white dark:bg-gray-800/20 hover:shadow-lg ${editingSpeakerId === speaker.id ? 'border-orange-500 shadow-xl shadow-orange-500/10' : 'border-gray-100 dark:border-gray-800 hover:border-orange-200'}`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative">
+                                                <img
+                                                    src={avatars.find(a => a.id === speaker.avatarId)?.url}
+                                                    alt={speaker.name}
+                                                    className="w-14 h-14 rounded-2xl object-cover border-2"
+                                                    style={{ borderColor: speaker.color }}
+                                                />
+                                                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border-2 border-gray-100">
+                                                    <span className="text-[10px]">{speaker.gender === 'male' ? '♂️' : '♀️'}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-bold text-lg group-hover:text-orange-500 transition-colors uppercase tracking-tight">{speaker.name}</p>
+                                                <p className="text-[10px] text-gray-400 font-medium uppercase">{audios.find(a => a.id === speaker.voiceId)?.name}</p>
+                                            </div>
+                                            <Settings className={`text-gray-300 transition-transform duration-500 ${editingSpeakerId === speaker.id ? 'rotate-90 text-orange-500' : ''}`} size={18} />
                                         </div>
-                                        <span className="font-semibold">{speaker.name}</span>
+
+                                        {/* Speaker Editor Dropdown */}
+                                        {editingSpeakerId === speaker.id && (
+                                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 space-y-5 animate-in fade-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                                                <div>
+                                                    <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Name</label>
+                                                    <input
+                                                        type="text"
+                                                        value={speaker.name}
+                                                        onChange={e => updateSpeaker(speaker.id, { name: e.target.value })}
+                                                        className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-3 text-sm focus:ring-1 focus:ring-orange-500 outline-none font-bold"
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Gender</label>
+                                                        <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-900 rounded-lg">
+                                                            <button
+                                                                onClick={() => updateSpeaker(speaker.id, { gender: 'male' })}
+                                                                className={`flex-1 py-1 rounded-md text-[10px] font-bold transition-all ${speaker.gender === 'male' ? 'bg-white dark:bg-gray-800 text-blue-500 shadow-sm' : 'text-gray-400'}`}
+                                                            >
+                                                                Male
+                                                            </button>
+                                                            <button
+                                                                onClick={() => updateSpeaker(speaker.id, { gender: 'female' })}
+                                                                className={`flex-1 py-1 rounded-md text-[10px] font-bold transition-all ${speaker.gender === 'female' ? 'bg-white dark:bg-gray-800 text-pink-500 shadow-sm' : 'text-gray-400'}`}
+                                                            >
+                                                                Female
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Avatar</label>
+                                                        <div className="flex gap-1">
+                                                            {avatars.map(avatar => (
+                                                                <button
+                                                                    key={avatar.id}
+                                                                    onClick={() => updateSpeaker(speaker.id, { avatarId: avatar.id })}
+                                                                    className={`w-6 h-6 rounded-md overflow-hidden border-2 transition-all ${speaker.avatarId === avatar.id ? 'border-orange-500 scale-110' : 'border-transparent opacity-50'}`}
+                                                                >
+                                                                    <img src={avatar.url} className="w-full h-full object-cover" />
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Select voice</label>
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        {audios.filter(a => a.type === 'Voiceover').map(audio => (
+                                                            <button
+                                                                key={audio.id}
+                                                                onClick={() => updateSpeaker(speaker.id, { voiceId: audio.id })}
+                                                                className={`flex items-center justify-between p-2 rounded-lg border-2 text-left transition-all ${speaker.voiceId === audio.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'border-gray-100 dark:border-gray-800'}`}
+                                                            >
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold">{audio.name}</p>
+                                                                    <p className="text-[8px] text-gray-400">{audio.description}</p>
+                                                                </div>
+                                                                {speaker.voiceId === audio.id && <CheckCircle2 size={12} className="text-blue-500" />}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
-                            {/* Conversation Script */}
-                            <div className="md:col-span-2 space-y-4">
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500">Conversation Flow</h3>
-                                <div className="bg-gray-50 dark:bg-gray-800/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/50 max-h-80 overflow-y-auto space-y-3 shadow-inner">
-                                    {analysisResult.messages.map((msg, idx) => {
-                                        const speaker = analysisResult.speakers.find(s => s.id === msg.speakerId);
-                                        return (
-                                            <div key={idx} className="flex flex-col gap-1">
-                                                <span className="text-[10px] font-black uppercase" style={{ color: speaker?.color || '#6366f1' }}>{speaker?.name || 'Unknown'}</span>
-                                                <p className="bg-white dark:bg-gray-900 p-3 rounded-xl rounded-tl-none border border-gray-100 dark:border-gray-800 text-sm">{msg.text}</p>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                        </section>
+
+                        <section className="animate-in slide-in-from-bottom duration-700">
+                            <div className="flex items-center gap-2 mb-6 text-gray-400">
+                                <MessageSquare size={18} />
+                                <h2 className="text-xl font-bold">3. Conversation Flow</h2>
                             </div>
-                        </div>
-                    </section>
+                            <div className="bg-gray-50 dark:bg-gray-800/40 p-6 rounded-3xl border border-gray-100 dark:border-gray-700/50 max-h-96 overflow-y-auto space-y-4 shadow-inner">
+                                {analysisResult.messages.map((msg: Message, idx: number) => {
+                                    const speaker = analysisResult.speakers.find((s: Speaker) => s.id === msg.speakerId);
+                                    return (
+                                        <div key={idx} className={`flex flex-col gap-2 ${idx % 2 === 0 ? 'items-start' : 'items-end'}`}>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: speaker?.color || '#6366f1' }}>{speaker?.name || 'Unknown'}</span>
+                                            </div>
+                                            <div className={`p-4 rounded-2xl max-w-[80%] text-sm shadow-sm border ${idx % 2 === 0 ? 'bg-white dark:bg-gray-900 rounded-tl-none border-gray-100 dark:border-gray-800' : 'bg-indigo-500 text-white rounded-tr-none border-indigo-400'}`}>
+                                                {msg.text}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    </div>
                 )}
 
-                {/* Avatar Selection */}
-                <section>
-                    <div className="flex items-center gap-2 mb-6 text-indigo-500">
-                        <User size={20} />
-                        <h2 className="text-xl font-bold">{analysisResult ? '3' : '2'}. Select Avatar</h2>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {avatars.map((avatar) => (
-                            <div
-                                key={avatar.id}
-                                onClick={() => setSelectedAvatar(avatar.id)}
-                                className={`relative aspect-square rounded-2xl overflow-hidden cursor-pointer border-4 transition-all ${selectedAvatar === avatar.id ? 'border-indigo-500 scale-95 shadow-lg' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'
-                                    }`}
-                            >
-                                <img src={avatar.url} alt={avatar.name} className="w-full h-full object-cover" />
-                                <div className="absolute inset-x-0 bottom-0 bg-black/50 backdrop-blur-sm p-2 text-center">
-                                    <p className="text-white text-xs font-medium">{avatar.name}</p>
-                                </div>
-                                {selectedAvatar === avatar.id && (
-                                    <div className="absolute top-2 right-2 text-indigo-500 bg-white rounded-full">
-                                        <CheckCircle2 size={24} fill="currentColor" className="text-white fill-indigo-500" />
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </section>
 
-                {/* Audio Selection */}
-                <section>
-                    <div className="flex items-center gap-2 mb-6 text-purple-500">
-                        <Music size={20} />
-                        <h2 className="text-xl font-bold">{analysisResult ? '4' : '3'}. Select Audio</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {audios.map((audio) => (
-                            <div
-                                key={audio.id}
-                                onClick={() => setSelectedAudio(audio.id)}
-                                className={`p-4 rounded-xl cursor-pointer border-2 transition-all flex items-center justify-between ${selectedAudio === audio.id ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/10' : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
-                                    }`}
-                            >
-                                <div>
-                                    <h3 className="font-semibold text-gray-900 dark:text-white">{audio.name}</h3>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{audio.description}</p>
-                                    <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500">
-                                        {audio.type}
-                                    </span>
-                                </div>
-                                {selectedAudio === audio.id && (
-                                    <CheckCircle2 size={20} className="text-purple-500" />
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </section>
+
+
 
                 {/* Theme Selection */}
                 <section>
                     <div className="flex items-center gap-2 mb-6 text-blue-500">
                         <Layout size={20} />
-                        <h2 className="text-xl font-bold">{analysisResult ? '5' : '4'}. Select Theme</h2>
+                        <h2 className="text-xl font-bold">{analysisResult ? '4' : '2'}. Select Theme</h2>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {themes.map((theme) => (
@@ -349,6 +410,34 @@ const CreateVideo = () => {
                                     <div className="mt-2 flex justify-center">
                                         <CheckCircle2 size={18} className="text-blue-500" />
                                     </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* 5. Select Video Length */}
+                <section>
+                    <div className="flex items-center gap-2 mb-6 text-rose-500">
+                        <Clock size={20} />
+                        <h2 className="text-xl font-bold">{analysisResult ? '5' : '3'}. Select Video Length</h2>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {videoLengths.map((length) => (
+                            <div
+                                key={length.id}
+                                onClick={() => setSelectedVideoLength(length.id)}
+                                className={`p-6 rounded-2xl cursor-pointer border-2 transition-all flex items-center gap-4 ${selectedVideoLength === length.id ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/10' : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'}`}
+                            >
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${selectedVideoLength === length.id ? 'bg-rose-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}`}>
+                                    <Clock size={24} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold">{length.name}</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{length.desc}</p>
+                                </div>
+                                {selectedVideoLength === length.id && (
+                                    <CheckCircle2 size={24} className="text-rose-500" />
                                 )}
                             </div>
                         ))}
