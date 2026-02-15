@@ -1,0 +1,46 @@
+# Project Build Report
+
+## Overview
+The project is a multi-service application composed of an Authentication Service and a Video Generation System (Frontend & Backend).
+
+## 1. Authentication Service 
+**Tech Stack:** Node.js, Express, MongoDB, JWT, Nodemailer
+**Status:** Functional Backend Service
+
+### Key Features Implemented:
+- **User Authentication:** 
+  - Registration with Email/OTP verification.
+  - Login with BCRYPT password hashing.
+  - JWT-based session management (Access & Refresh Tokens).
+- **Security:**
+  - Rate Limiting (`express-rate-limit`).
+  - CORS configuration & Helmet security headers.
+  - Password Reset flow via Email OTP.
+- **Project Structure:** MVC (Model-View-Controller) architecture with separate Services, Controllers, and Routes.
+
+## 2. Video Generation System (`/videoModel`)
+### A. Video Backend (`/videoModel/Backend`)
+**Tech Stack:** Node.js, Express, MongoDB, Google Gemini AI, ElevenLabs API
+**Status:** Functional Backend Service
+
+**Key Features:**
+- **AI Integration:**
+  - **Google Gemini:** For generating chat content/scripts.
+  - **ElevenLabs:** For text-to-speech audio generation.
+- **API Endpoints:**
+  - `/api/chat`: Handles chat generation requests.
+  - `/api/audio`: Handles audio generation requests.
+- **Static File Serving:** Serves public assets.
+
+### B. Video Frontend (`/videoModel/frontend`)
+**Tech Stack:** React (Vite), Tailwind CSS, Remotion
+**Status:** Frontend UI Application
+
+##
+
+
+## Summary of Execution Flow
+1. **User Management:** Managed by the independent `backend` service (Auth).
+2. **Content Creation:** Users interact with the `videoModel` frontend. 
+3. **AI Processing:** The frontend sends requests to the `videoModel` backend, which leverages Gemini and ElevenLabs to create multimedia assets (scripts, audio).
+4. **Video Rendering:** The frontend uses these assets to render videos using Remotion.
