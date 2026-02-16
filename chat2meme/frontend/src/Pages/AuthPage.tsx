@@ -149,7 +149,7 @@ export default function AuthPage() {
         });
 
         alert("Login successful!");
-        navigate("/dashboard");
+        navigate("/dashboard/video");
       }
     } catch (error: any) {
       console.error("Error:", error);
@@ -212,7 +212,7 @@ export default function AuthPage() {
                   value={otp[i]}
                   className="w-14 h-16 text-center border border-gray-300 rounded-lg
                             text-2xl bg-white text-black
-                            focus:outline-none focus:border-1 focus:border-black 
+                            focus:outline-none focus:border-1 
                             focus:border-black shadow-sm transition-all"
                   onChange={(e) => handleOtpInput(e, i)}
                   onKeyDown={(e) => handleOtpKeyDown(e, i)}

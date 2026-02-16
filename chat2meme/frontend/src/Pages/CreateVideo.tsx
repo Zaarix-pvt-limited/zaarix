@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import {
     ChevronLeft, User, Music, Layout, Wand2, CheckCircle2,
-    MessageSquare, Upload, Type, X, Loader2, Sparkles, Users, Settings, Clock
+    MessageSquare, Upload, Type, X, Loader2, Sparkles, Users, Settings, Clock, ChevronDown
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,13 +45,14 @@ const videoLengths = [
     { id: '30', name: '30 Seconds', desc: 'Quick summary' },
     { id: '60', name: '60 Seconds', desc: 'Standard depth' },
     { id: '90', name: '90 Seconds', desc: 'Detailed deep dive' },
+    { id: '120', name: '120 Seconds', desc: 'Extended coverage' },
 ];
 
 const CreateVideo = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedTheme, setSelectedTheme] = useState<number | null>(null);
-    const [selectedVideoLength, setSelectedVideoLength] = useState<string>('60');
+    const [selectedVideoLength, setSelectedVideoLength] = useState<string>('30');
     const [mode, setMode] = useState("image");
 
     // Chat Input State
@@ -63,6 +64,7 @@ const CreateVideo = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResult, setAnalysisResult] = useState<{ speakers: Speaker[], messages: Message[] } | null>(null);
     const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null);
+    const [isVideoLengthOpen, setIsVideoLengthOpen] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -149,7 +151,7 @@ const CreateVideo = () => {
     };
 
     return (
-        <div className="flex h-full w-full bg-white dark:bg-[#0B0F19] overflow-hidden">
+        <div className="flex h-full  w-full bg-white dark:bg-[#0B0F19] overflow-hidden">
             {/* Main Content Area */}
             <div className={`flex-1 flex flex-col min-w-0 transition-all duration-500 ${editingSpeakerId ? 'pr-0' : ''}`}>
                 <div className="p-6 h-full overflow-y-auto w-full pb-20 custom-scrollbar">
@@ -176,7 +178,7 @@ const CreateVideo = () => {
                                     <button
                                         onClick={() => { setMode("image"); setAnalysisResult(null); }}
                                         className={`px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 ${mode === "image"
-                                            ? "bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white"
+                                            ? "bg-white dark:bg-gray-700 shadow-sm ring-1 ring-gray-200 dark:ring-gray-600 text-gray-900 dark:text-white"
                                             : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                                             }`}
                                     >
@@ -185,7 +187,7 @@ const CreateVideo = () => {
                                     <button
                                         onClick={() => { setMode("text"); setAnalysisResult(null); }}
                                         className={`px-5 py-2 text-sm font-medium rounded-md transition-all duration-200 ${mode === "text"
-                                            ? "bg-white dark:bg-gray-700 shadow text-gray-900 dark:text-white"
+                                            ? "bg-white dark:bg-gray-700 shadow-sm ring-1 ring-gray-200 dark:ring-gray-600 text-gray-900 dark:text-white"
                                             : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                                             }`}
                                     >
@@ -193,13 +195,78 @@ const CreateVideo = () => {
                                     </button>
                                 </div>
 
-                                <button
-                                    onClick={handleAnalyze}
-                                    disabled={isAnalyzing || (mode === 'image' ? !screenshot : !chatText.trim())}
-                                    className="px-6 py-2 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isAnalyzing ? 'Analyzing...' : 'Continue'}
-                                </button>
+
+                                <div className='flex gap-4'>
+                                    <div className="relative w-48">
+                                        <button
+                                            onClick={() => setIsVideoLengthOpen(!isVideoLengthOpen)}
+                                            className={`w-full flex items-center justify-between bg-white dark:bg-gray-900 border text-left rounded-md px-3 py-1.5 transition-all shadow-sm ${isVideoLengthOpen
+                                                ? 'border-gray-300 dark:border-gray-600 ring-2 ring-gray-100 dark:ring-gray-800'
+                                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${isVideoLengthOpen ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                                                    }`}>
+                                                    <Clock size={14} />
+                                                </div>
+                                                <span className="block text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                    {videoLengths.find(l => l.id === selectedVideoLength)?.name}
+                                                </span>
+                                            </div>
+                                            <ChevronDown
+                                                className={`text-gray-400 transition-transform duration-200 flex-shrink-0 ${isVideoLengthOpen ? 'rotate-180' : ''}`}
+                                                size={16}
+                                            />
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {isVideoLengthOpen && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 4, scale: 0.98 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                                                    transition={{ duration: 0.1 }}
+                                                    className="absolute z-20 w-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg overflow-hidden p-1"
+                                                >
+                                                    {videoLengths.map((length) => (
+                                                        <button
+                                                            key={length.id}
+                                                            onClick={() => {
+                                                                setSelectedVideoLength(length.id);
+                                                                setIsVideoLengthOpen(false);
+                                                            }}
+                                                            className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all mb-0.5 last:mb-0 ${selectedVideoLength === length.id
+                                                                ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-medium'
+                                                                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-400'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm">{length.name}</span>
+                                                            </div>
+                                                            {selectedVideoLength === length.id && (
+                                                                <CheckCircle2 size={14} className="text-gray-900 dark:text-white" />
+                                                            )}
+                                                        </button>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+
+                                    <button
+                                        onClick={handleAnalyze}
+                                        disabled={isAnalyzing || (mode === 'image' ? !screenshot : !chatText.trim())}
+                                        className={`px-5 py-2.5 text-sm font-medium rounded-md border shadow-sm transition-all ${isAnalyzing || (mode === 'image' ? !screenshot : !chatText.trim())
+                                            ? 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed shadow-none'
+                                            : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-white hover:shadow'
+                                            }`}
+                                    >
+                                        {isAnalyzing ? 'Analyzing...' : 'Continue'}
+                                    </button>
+
+
+                                </div>
                             </div>
 
                             {/* Input Area */}
@@ -232,34 +299,37 @@ const CreateVideo = () => {
                         {analysisResult && (
                             <div className="space-y-12">
                                 <section className="animate-in slide-in-from-bottom duration-500">
-                                    <div className="flex items-center gap-2 mb-6 text-orange-500">
+                                    <div className="flex items-center gap-2 mb-4 text-gray-900 dark:text-white">
                                         <Users size={20} />
-                                        <h2 className="text-xl font-bold">2. Review Speakers</h2>
+                                        <h2 className="text-lg font-medium">2. Review Speakers</h2>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {analysisResult.speakers.map((speaker: Speaker) => (
                                             <div
                                                 key={speaker.id}
                                                 onClick={() => setEditingSpeakerId(editingSpeakerId === speaker.id ? null : speaker.id)}
-                                                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer group bg-white dark:bg-gray-800/20 hover:shadow-lg ${editingSpeakerId === speaker.id ? 'border-orange-500 shadow-xl shadow-orange-500/10' : 'border-gray-100 dark:border-gray-800 hover:border-orange-200'}`}
+                                                className={`p-4 rounded-md border transition-all cursor-pointer group bg-white dark:bg-gray-900 ${editingSpeakerId === speaker.id
+                                                    ? 'border-gray-300 dark:border-gray-600 ring-2 ring-gray-100 dark:ring-gray-800 shadow-sm'
+                                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
+                                                    }`}
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className="relative">
                                                         <img
                                                             src={avatars.find(a => a.id === speaker.avatarId)?.url}
                                                             alt={speaker.name}
-                                                            className="w-14 h-14 rounded-2xl object-cover border-2"
+                                                            className="w-14 h-14 rounded-md object-cover border-2"
                                                             style={{ borderColor: speaker.color }}
                                                         />
-                                                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border-2 border-gray-100 dark:border-gray-700 shadow-sm">
+                                                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center border-2 border-gray-100 dark:border-gray-800 shadow-sm">
                                                             <span className="text-[10px]">{speaker.gender === 'male' ? '♂️' : '♀️'}</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="font-bold text-lg group-hover:text-orange-500 transition-colors uppercase tracking-tight truncate">{speaker.name}</p>
-                                                        <p className="text-[10px] text-gray-400 font-medium uppercase truncate">{audios.find(a => a.id === speaker.voiceId)?.name}</p>
+                                                        <p className="font-medium text-lg text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors uppercase tracking-tight truncate">{speaker.name}</p>
+                                                        <p className="text-[10px] text-gray-500 font-medium uppercase truncate">{audios.find(a => a.id === speaker.voiceId)?.name}</p>
                                                     </div>
-                                                    <Settings className={`text-gray-400 transition-transform duration-500 group-hover:text-orange-500 ${editingSpeakerId === speaker.id ? 'rotate-90 text-orange-500' : ''}`} size={18} />
+                                                    <Settings className={`text-gray-400 transition-transform duration-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 ${editingSpeakerId === speaker.id ? 'rotate-90 text-gray-900 dark:text-white' : ''}`} size={16} />
                                                 </div>
                                             </div>
                                         ))}
@@ -270,7 +340,7 @@ const CreateVideo = () => {
 
                         {/* Theme Selection */}
                         <section className="animate-in slide-in-from-bottom duration-700">
-                            <div className="flex items-center gap-2 mb-6 text-blue-500">
+                            <div className="flex items-center gap-2 mb-6 text-gray-900 dark:text-white">
                                 <Layout size={20} />
                                 <h2 className="text-xl font-bold">{analysisResult ? '3' : '2'}. Select Theme</h2>
                             </div>
@@ -279,61 +349,37 @@ const CreateVideo = () => {
                                     <div
                                         key={theme.id}
                                         onClick={() => setSelectedTheme(theme.id)}
-                                        className={`p-4 rounded-xl cursor-pointer border-2 transition-all text-center ${selectedTheme === theme.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/10' : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
+                                        className={`p-4 rounded-md cursor-pointer border transition-all text-center ${selectedTheme === theme.id
+                                            ? 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 ring-2 ring-gray-100 dark:ring-gray-800 shadow-sm'
+                                            : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
                                             }`}
                                     >
-                                        <div className={`w-full aspect-video rounded-lg mb-3 ${theme.color} opacity-80`} />
-                                        <h3 className="text-sm font-semibold">{theme.name}</h3>
+                                        <div className={`w-full aspect-video rounded-sm mb-3 ${theme.color} opacity-80`} />
+                                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">{theme.name}</h3>
                                         {selectedTheme === theme.id && (
                                             <div className="mt-2 flex justify-center">
-                                                <CheckCircle2 size={18} className="text-blue-500" />
+                                                <CheckCircle2 size={16} className="text-gray-900 dark:text-white" />
                                             </div>
                                         )}
                                     </div>
                                 ))}
                             </div>
                         </section>
-
-                        {/* Select Video Length */}
-                        <section className="animate-in slide-in-from-bottom duration-700">
-                            <div className="flex items-center gap-2 mb-6 text-rose-500">
-                                <Clock size={20} />
-                                <h2 className="text-xl font-bold">{analysisResult ? '4' : '3'}. Select Video Length</h2>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {videoLengths.map((length) => (
-                                    <div
-                                        key={length.id}
-                                        onClick={() => setSelectedVideoLength(length.id)}
-                                        className={`p-6 rounded-2xl cursor-pointer border-2 transition-all flex items-center gap-4 ${selectedVideoLength === length.id ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/10' : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'}`}
-                                    >
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${selectedVideoLength === length.id ? 'bg-rose-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}`}>
-                                            <Clock size={24} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold">{length.name}</h3>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">{length.desc}</p>
-                                        </div>
-                                        {selectedVideoLength === length.id && (
-                                            <CheckCircle2 size={24} className="text-rose-500" />
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
                         {/* Action Section */}
-                        {analysisResult && (
-                            <div className="pt-8 border-t border-gray-100 dark:border-gray-800 flex justify-end">
-                                <button
-                                    onClick={handleGenerate}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 transition-transform hover:scale-105 shadow-xl shadow-indigo-500/20"
-                                >
-                                    <Wand2 size={20} />
-                                    Generate Video
-                                </button>
-                            </div>
-                        )}
+                        {/* Action Section */}
+                        <div className="pt-8 border-t border-gray-100 dark:border-gray-800 flex justify-end">
+                            <button
+                                onClick={handleGenerate}
+                                disabled={!analysisResult}
+                                className={`flex items-center gap-3 px-5 py-2.5 rounded-md border shadow-sm transition-all text-sm font-medium ${analysisResult
+                                    ? 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-white hover:shadow'
+                                    : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed shadow-none'
+                                    }`}
+                            >
+                                <Wand2 size={16} />
+                                Generate Video
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -493,10 +539,10 @@ const CreateVideo = () => {
                                     {/* Sidebar Header for Script Review */}
                                     <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-500">
+                                            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-md text-gray-900 dark:text-white">
                                                 <MessageSquare size={20} />
                                             </div>
-                                            <h3 className="text-xl font-bold uppercase tracking-tight">Review Script</h3>
+                                            <h3 className="text-lg font-medium uppercase tracking-tight">Review Script</h3>
                                         </div>
                                     </div>
 
@@ -507,9 +553,12 @@ const CreateVideo = () => {
                                             return (
                                                 <div key={idx} className={`flex flex-col gap-2 ${idx % 2 === 0 ? 'items-start' : 'items-end'}`}>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: speaker?.color || '#6366f1' }}>{speaker?.name || 'Unknown'}</span>
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">{speaker?.name || 'Unknown'}</span>
                                                     </div>
-                                                    <div className={`p-4 rounded-2xl max-w-[90%] text-sm shadow-sm border ${idx % 2 === 0 ? 'bg-white dark:bg-gray-900 rounded-tl-none border-gray-100 dark:border-gray-800' : 'bg-indigo-500 text-white rounded-tr-none border-indigo-400'}`}>
+                                                    <div className={`p-4 rounded-md max-w-[90%] text-sm shadow-sm border ${idx % 2 === 0
+                                                            ? 'bg-white dark:bg-gray-900 rounded-tl-none border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white'
+                                                            : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-tr-none border-gray-800 dark:border-gray-200'
+                                                        }`}>
                                                         {msg.text}
                                                     </div>
                                                 </div>

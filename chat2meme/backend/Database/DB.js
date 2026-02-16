@@ -13,7 +13,7 @@ async function connectToDB() {
 }
 
 async function checkDBConnection() {
-  return mongoose.connection.readyState === 1; // 1 means connected
+  return mongoose.connection.readyState === 1; 
 }
 
 module.exports = { connectToDB, checkDBConnection };

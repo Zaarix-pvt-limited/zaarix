@@ -12,6 +12,7 @@ import {
   Settings,
   Search
 } from 'lucide-react';
+import { useAuthStore } from "../Zustand/userStore";
 import { ThemeToggle } from './UI/toggleTheme';
 import { IoNotificationsOutline } from "react-icons/io5";
 import { FaVideo } from "react-icons/fa";
@@ -40,6 +41,7 @@ interface ExpandedFolders {
 
 const sideBAr: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [expandedFolders, setExpandedFolders] = useState<ExpandedFolders>({
     history: false,
     agents: false
@@ -101,7 +103,7 @@ const sideBAr: React.FC = () => {
                 <Lock className='text-gray-600 dark:text-gray-300 font-bold' size={20} />
               </div>
               <div className='text-black dark:text-white'>
-                <h4 className="text-black dark:text-white">Manjeet Sharma</h4>
+                <h4 className="text-black dark:text-white font-medium">{user?.name || "Guest User"}</h4>
                 <p className='text-xs text-gray-600 dark:text-gray-400'>Standard plan</p>
               </div>
             </div>
@@ -203,7 +205,7 @@ const sideBAr: React.FC = () => {
               User Profile
             </h2>
             <h2 className="text-xs font-medium text-gray-900 dark:text-gray-100">
-              Manjeet
+              {user?.name?.split(' ')[0] || "Guest"}
             </h2>
           </div>
         </div>
