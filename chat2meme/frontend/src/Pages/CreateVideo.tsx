@@ -5,6 +5,10 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Player } from "@remotion/player";
+import { MyComposition } from '../Components/MyComposition';
+
+
 
 const avatars = [
     { id: 1, name: 'Professional Man', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
@@ -146,6 +150,8 @@ const CreateVideo = () => {
     };
 
     const [isGenerating, setIsGenerating] = useState(false);
+    const [showVideo, setShowVideo] = useState(false);
+    const [generatedData, setGeneratedData] = useState<any>(null);
 
     const handleGenerate = async () => {
         if (!analysisResult) {
@@ -161,52 +167,35 @@ const CreateVideo = () => {
         console.log('Generating video...');
 
         try {
-            // Prepare chat data with speaker info for the backend
-            // Mapping frontend message structure to backend expectation
             const chatData = analysisResult.messages.map(msg => {
-                const speaker = analysisResult.speakers.find(s => s.id === msg.speakerId);
-                // Determine if speaker is A or B based on index in speakers array for simple mapping
-                // or use the speakerId if it is 'A' or 'B'
-                // For now, let's assume the backend audio service handles 'A' and 'B'.
-                // We'll try to map based on the first two speakers.
                 const speakerIndex = analysisResult.speakers.findIndex(s => s.id === msg.speakerId);
                 const speakerLabel = speakerIndex === 0 ? 'A' : 'B';
-
                 return {
-                    speaker: speakerLabel, // 'A' or 'B'
+                    speaker: speakerLabel,
                     text: msg.text,
-                    voiceId: speaker?.voiceId // Pass voiceId if we want to use specific voices later
+                    voiceId: analysisResult.speakers.find(s => s.id === msg.speakerId)?.voiceId
                 };
             });
 
             const payload = {
-                email: "test@example.com", // Hardcoded for now as requested for testing
+                email: "test@example.com",
                 chatData: chatData,
                 theme: selectedTheme,
-                // Pass voice IDs mapping if needed, for now audio.Service uses defaults or we can update it later
             };
 
             const response = await fetch('http://localhost:3000/api/video/create', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
             const result = await response.json();
 
             if (result.success) {
-                console.log("✅ Video Generation Successful!");
-                console.log("🎧 Audio Links:", result.data.chatData.map((item: any) => ({
-                    speaker: item.speaker,
-                    text: item.text,
-                    audioUrl: item.audioUrl
-                })));
-                console.log("Full Data:", result.data);
-                alert("Video generation complete! Check console for audio links.");
+                console.log("✅ Video Generation Successful!", result.data);
+                setGeneratedData(result.data.chatData);
+                setShowVideo(true);
             } else {
-                console.error("Server Error:", result.message);
                 alert(`Generation failed: ${result.message}`);
             }
 
@@ -217,6 +206,7 @@ const CreateVideo = () => {
             setIsGenerating(false);
         }
     };
+
 
 
 
@@ -678,6 +668,61 @@ const CreateVideo = () => {
                                 </>
                             )}
                         </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            {/* Video Player Overlay */}
+            <AnimatePresence>
+                {showVideo && generatedData && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-2xl max-w-lg w-full"
+                        >
+                            <button
+                                onClick={() => setShowVideo(false)}
+                                className="absolute -top-12 right-0 text-white hover:text-gray-200 transition-colors"
+                            >
+                                <X size={32} />
+                            </button>
+
+                            <div className="rounded-xl overflow-hidden aspect-[9/16] bg-black">
+                                <Player
+                                    component={MyComposition}
+                                    durationInFrames={Math.max(120, generatedData.length * 120)}
+                                    compositionWidth={540}
+                                    compositionHeight={960}
+                                    fps={30}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                    }}
+                                    controls
+                                    inputProps={{
+                                        conversation: generatedData,
+                                        avatar1: analysisResult?.speakers[0]?.avatarId ? avatars.find(a => a.id === analysisResult.speakers[0].avatarId)?.url || "" : "",
+                                        avatar2: analysisResult?.speakers[1]?.avatarId ? avatars.find(a => a.id === analysisResult.speakers[1].avatarId)?.url || "" : ""
+                                    }}
+                                />
+                            </div>
+
+                            <div className="mt-4 flex justify-between items-center text-gray-400 text-sm">
+                                <span>Preview Mode</span>
+                                <button
+                                    onClick={() => alert("Download feature coming soon!")}
+                                    className="text-indigo-500 hover:text-indigo-400 font-medium"
+                                >
+                                    Download
+                                </button>
+                            </div>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
