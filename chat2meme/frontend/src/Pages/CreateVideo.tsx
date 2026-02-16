@@ -145,7 +145,9 @@ const CreateVideo = () => {
         setHasChanges(true);
     };
 
-    const handleGenerate = () => {
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleGenerate = async () => {
         if (!analysisResult) {
             alert('Please analyze your chat content first.');
             return;
@@ -154,13 +156,70 @@ const CreateVideo = () => {
             alert('Please select a theme before generating.');
             return;
         }
-        console.log('Generating video with:', {
-            analysisResult,
-            selectedTheme,
-            selectedVideoLength
-        });
-        alert('Video generation started!');
+
+        setIsGenerating(true);
+        console.log('Generating video...');
+
+        try {
+            // Prepare chat data with speaker info for the backend
+            // Mapping frontend message structure to backend expectation
+            const chatData = analysisResult.messages.map(msg => {
+                const speaker = analysisResult.speakers.find(s => s.id === msg.speakerId);
+                // Determine if speaker is A or B based on index in speakers array for simple mapping
+                // or use the speakerId if it is 'A' or 'B'
+                // For now, let's assume the backend audio service handles 'A' and 'B'.
+                // We'll try to map based on the first two speakers.
+                const speakerIndex = analysisResult.speakers.findIndex(s => s.id === msg.speakerId);
+                const speakerLabel = speakerIndex === 0 ? 'A' : 'B';
+
+                return {
+                    speaker: speakerLabel, // 'A' or 'B'
+                    text: msg.text,
+                    voiceId: speaker?.voiceId // Pass voiceId if we want to use specific voices later
+                };
+            });
+
+            const payload = {
+                email: "test@example.com", // Hardcoded for now as requested for testing
+                chatData: chatData,
+                theme: selectedTheme,
+                // Pass voice IDs mapping if needed, for now audio.Service uses defaults or we can update it later
+            };
+
+            const response = await fetch('http://localhost:3000/api/video/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                console.log("✅ Video Generation Successful!");
+                console.log("🎧 Audio Links:", result.data.chatData.map((item: any) => ({
+                    speaker: item.speaker,
+                    text: item.text,
+                    audioUrl: item.audioUrl
+                })));
+                console.log("Full Data:", result.data);
+                alert("Video generation complete! Check console for audio links.");
+            } else {
+                console.error("Server Error:", result.message);
+                alert(`Generation failed: ${result.message}`);
+            }
+
+        } catch (error) {
+            console.error("Generation Error:", error);
+            alert("Failed to connect to generation service.");
+        } finally {
+            setIsGenerating(false);
+        }
     };
+
+
+
 
     return (
         <div className="flex h-full  w-full bg-white dark:bg-[#0B0F19] overflow-hidden">
@@ -385,19 +444,20 @@ const CreateVideo = () => {
                         <div className="pt-8 border-t border-gray-100 dark:border-gray-800 flex justify-end">
                             <button
                                 onClick={handleGenerate}
-                                disabled={!analysisResult}
-                                className={`flex items-center gap-3 px-5 py-2.5 rounded-md border shadow-sm transition-all text-sm font-medium ${analysisResult
+                                disabled={!analysisResult || isGenerating}
+                                className={`flex items-center gap-3 px-5 py-2.5 rounded-md border shadow-sm transition-all text-sm font-medium ${analysisResult && !isGenerating
                                     ? 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-white hover:shadow'
                                     : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed shadow-none'
                                     }`}
                             >
                                 <Wand2 size={16} />
-                                Generate Video
+                                {isGenerating ? 'Generating...' : 'Generate Video'}
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+
 
             {/* Speaker Sidebar Editor (Integrated) */}
             <AnimatePresence>
@@ -568,8 +628,8 @@ const CreateVideo = () => {
                                                 }
                                             }}
                                             className={`w-full py-3 rounded-md font-medium text-sm shadow-sm hover:shadow transition-all ${hasChanges
-                                                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                                                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white'
+                                                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                                                : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white'
                                                 }`}
                                         >
                                             {hasChanges ? 'Save Performer' : 'View Conversation'}
@@ -621,7 +681,7 @@ const CreateVideo = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };
 

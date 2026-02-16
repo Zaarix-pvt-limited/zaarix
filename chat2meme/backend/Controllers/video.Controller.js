@@ -1,5 +1,6 @@
 const { sendVideoReadyEmail } = require("../utils/mail");
 const geminiService = require("../Services/gemini.Service");
+const audioService = require("../Services/audio.Service");
 
 /**
  * Analyze chat content (text or image) using Gemini
@@ -56,45 +57,45 @@ const createVideo = async (req, res) => {
             });
         }
 
-        // 1. Immediate response to user
+        // 1. Immediate response to user (optional, but if we want to process in background we need a queue)
+        // For now, let's keep it synchronous as per user request to "console the data" in frontend
+
+        console.log(`[Video Controller] Starting audio generation for ${email}...`);
+
+        // 2. Generate Audio and Upload to Cloudinary
+        const enrichedChatData = await audioService.processConversationAudio(chatData);
+
+        console.log(`[Video Controller] Audio generation complete.`);
+
+        // 3. (Optional) Send email notification still? 
+        // The user didn't explicitly ask to remove it, but the focus is on "consoling data in frontend".
+        // Let's keep the email logic as a nice-to-have but non-blocking.
+
+        // Mock video link (since we are only doing audio for now as per "half of work is done")
+        // The "Video" is actually just the data for the frontend to render.
+        const videoLink = "https://remotion-player-url.com/render";
+        const name = email.split("@")[0];
+
+        // Fire and forget email
+        sendVideoReadyEmail(email, name, videoLink).catch(err => console.error("Email failed", err));
+
+        // 4. Return the enriched data
         res.status(200).json({
             success: true,
-            message: "Video generation started. You will receive an email when it is ready.",
+            message: "Audio generation complete.",
             data: {
-                status: "processing",
-                estimatedTime: "10 seconds"
+                chatData: enrichedChatData,
+                videoLink // conceptual
             }
         });
 
-        // 2. Simulate background processing (10 seconds)
-        console.log(`[Video Demo] Starting video generation for ${email}...`);
-
-        setTimeout(async () => {
-            try {
-                console.log(`[Video Demo] Video generation complete for ${email}`);
-
-                // Mock video link (replace with real link in future)
-                const videoLink = "https://www.w3schools.com/html/mov_bbb.mp4";
-                const name = email.split("@")[0]; // Simple name extraction
-
-                // 3. Send email notification
-                await sendVideoReadyEmail(email, name, videoLink);
-
-                console.log(`[Video Demo] Notification email sent to ${email}`);
-            } catch (error) {
-                console.error(`[Video Demo] Failed to send email: ${error.message}`);
-            }
-        }, 10000); // 10 seconds delay
-
     } catch (error) {
         console.error("Video controller error:", error);
-        // Note: Can't send response here if already sent above, but good for logging
-        if (!res.headersSent) {
-            res.status(500).json({
-                success: false,
-                message: "Internal server error"
-            });
-        }
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
     }
 };
 
