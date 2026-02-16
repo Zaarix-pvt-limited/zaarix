@@ -9,7 +9,7 @@ module.exports = {
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:3000",
 
   // Database
-  MONGODB_URI: process.env.MONGODB_URI,
+  MONGODB_URI: process.env.MONGODB_URI || process.env.MONGO_URI,
 
   // Bcrypt
   BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10,
@@ -23,7 +23,7 @@ module.exports = {
     "your-refresh-secret-change-in-production",
 
   // JWT Expiration
-  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
+  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || process.env.ACCESS_TOKEN_EXPIRES || "15m",
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
 
   // Token Expiration (for DB storage)

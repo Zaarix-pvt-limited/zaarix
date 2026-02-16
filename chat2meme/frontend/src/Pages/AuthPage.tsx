@@ -36,7 +36,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard", { replace: true });
+      navigate("/dashboard/video", { replace: true });
     }
   }, [user, navigate]);
 
@@ -81,7 +81,7 @@ export default function AuthPage() {
         otp: code,
       });
 
-      navigate("/dashboard");
+      navigate("/dashboard/video");
   
     } catch (error: any) {
       console.error("OTP verification failed:", error);

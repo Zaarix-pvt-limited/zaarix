@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
+const crypto = require("crypto");
 
 const User = require("../Model/user.Model");
 const TokenModel = require("../Model/token");
@@ -24,7 +25,7 @@ const { sendEmail } = require("../utils/mail");
  * Generate a random 6-digit OTP
  */
 const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 999999).toString();
 };
 
 /**
@@ -110,7 +111,7 @@ const verifyOTP = async (email, otp) => {
 
   const user = await User.findOne({ email });
   if (!user) {
-    throw new Error("Invlid imput");
+    throw new Error("User not found");
   }
 
   user.verified = true;
