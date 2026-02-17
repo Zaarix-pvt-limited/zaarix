@@ -44,61 +44,112 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
             {/* Speech Bubbles Area */}
             <div style={{
                 position: 'absolute',
-                top: '10%',
+                top: 0,
                 left: 0,
                 width: '100%',
-                height: '40%',
+                height: '100%',
                 zIndex: 2,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                padding: '20px'
+                pointerEvents: 'none' // Allow clicking through if needed
             }}>
-                <div style={{
-                    position: 'relative',
-                    background: 'white',
-                    border: '4px solid black',
-                    borderRadius: '20px',
-                    padding: '20px 30px',
-                    maxWidth: '80%',
-                    boxShadow: '10px 10px 0px rgba(0,0,0,0.2)',
-                    transform: `rotate(${currentMessage.speaker === 'A' ? '-2deg' : '2deg'})`,
-                    transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                }}>
+                {/* Bubble for Speaker A */}
+                {currentMessage.speaker === 'A' && (
                     <div style={{
-                        fontSize: '32px',
-                        fontWeight: 'bold',
-                        color: 'black',
-                        lineHeight: '1.3',
+                        position: 'absolute',
+                        top: '19%',
+                        left: '10%',
+                        background: 'white',
+                        border: '4px solid black',
+                        borderRadius: '20px',
+                        padding: '20px',
+                        maxWidth: '350px',
+                        boxShadow: '10px 10px 0px rgba(0,0,0,0.2)',
+                        transform: 'rotate(-2deg)',
                         textAlign: 'center'
                     }}>
-                        {currentMessage.text}
+                        <div style={{
+                            fontSize: '24px',
+                            fontWeight: 'bold',
+                            color: 'black',
+                            lineHeight: '1.3',
+                            fontFamily: 'Comic Sans MS, cursive, sans-serif'
+                        }}>
+                            {currentMessage.text}
+                        </div>
+                        {/* Tail for A */}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '-20px',
+                            left: '40px',
+                            width: '0',
+                            height: '0',
+                            borderLeft: '20px solid transparent',
+                            borderRight: '20px solid transparent',
+                            borderTop: '25px solid black',
+                            transform: 'skewX(-20deg)'
+                        }} />
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '-14px',
+                            left: '42px',
+                            width: '0',
+                            height: '0',
+                            borderLeft: '16px solid transparent',
+                            borderRight: '16px solid transparent',
+                            borderTop: '22px solid white',
+                            transform: 'skewX(-20deg)'
+                        }} />
                     </div>
+                )}
 
-                    {/* Speech Bubble Tail */}
+                {/* Bubble for Speaker B */}
+                {currentMessage.speaker === 'B' && (
                     <div style={{
                         position: 'absolute',
-                        bottom: '-20px',
-                        left: currentMessage.speaker === 'A' ? '20%' : 'auto',
-                        right: currentMessage.speaker === 'B' ? '20%' : 'auto',
-                        width: '0',
-                        height: '0',
-                        borderLeft: '20px solid transparent',
-                        borderRight: '20px solid transparent',
-                        borderTop: '25px solid black',
-                    }} />
-                    <div style={{
-                        position: 'absolute',
-                        bottom: '-14px',
-                        left: currentMessage.speaker === 'A' ? '22%' : 'auto',
-                        right: currentMessage.speaker === 'B' ? '22%' : 'auto',
-                        width: '0',
-                        height: '0',
-                        borderLeft: '16px solid transparent',
-                        borderRight: '16px solid transparent',
-                        borderTop: '22px solid white',
-                    }} />
-                </div>
+                        top: '19%',
+                        right: '10%', // Positioned on right
+                        background: 'white',
+                        border: '4px solid black',
+                        borderRadius: '20px',
+                        padding: '20px',
+                        maxWidth: '350px',
+                        boxShadow: '-10px 10px 0px rgba(0,0,0,0.2)', // Shadow to other side
+                        transform: 'rotate(2deg)',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{
+                            fontSize: '24px',
+                            fontWeight: 'bold',
+                            color: 'black',
+                            lineHeight: '1.3',
+                            fontFamily: 'Comic Sans MS, cursive, sans-serif'
+                        }}>
+                            {currentMessage.text}
+                        </div>
+                        {/* Tail for B */}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '-20px',
+                            right: '40px', // Tail on right
+                            width: '0',
+                            height: '0',
+                            borderLeft: '20px solid transparent',
+                            borderRight: '20px solid transparent',
+                            borderTop: '25px solid black',
+                            transform: 'skewX(20deg)'
+                        }} />
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '-14px',
+                            right: '42px',
+                            width: '0',
+                            height: '0',
+                            borderLeft: '16px solid transparent',
+                            borderRight: '16px solid transparent',
+                            borderTop: '22px solid white',
+                            transform: 'skewX(20deg)'
+                        }} />
+                    </div>
+                )}
             </div>
 
             {/* Characters Container */}
