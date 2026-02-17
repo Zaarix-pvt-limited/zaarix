@@ -684,14 +684,19 @@ const CreateVideo = () => {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="relative bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-2xl max-w-lg w-full"
+                            className="relative bg-white dark:bg-gray-900 p-4 rounded-xl shadow-2xl max-w-sm w-full flex flex-col gap-3"
                         >
-                            <button
-                                onClick={() => setShowVideo(false)}
-                                className="absolute -top-12 right-0 text-white hover:text-gray-200 transition-colors"
-                            >
-                                <X size={32} />
-                            </button>
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                                    Video Generated! 🎉
+                                </h2>
+                                <button
+                                    onClick={() => setShowVideo(false)}
+                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
 
                             <div className="rounded-xl overflow-hidden aspect-[9/16] bg-black">
                                 <Player

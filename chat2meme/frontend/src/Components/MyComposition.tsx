@@ -1,5 +1,8 @@
-import { AbsoluteFill, useVideoConfig, useCurrentFrame, spring, Audio } from 'remotion';
+import { AbsoluteFill, useVideoConfig, useCurrentFrame, spring, Audio, Img } from 'remotion';
 import React from 'react';
+import bgImage from '../assets/image.png';
+import person1 from '../assets/person1.png';
+import person2 from '../assets/person2.png';
 
 interface Message {
     speaker: 'A' | 'B';
@@ -19,136 +22,150 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
 
     const framesPerMessage = 120; // 4 seconds per message
     const index = Math.floor(frame / framesPerMessage);
-    const currentMessage = conversation[index] || conversation[conversation.length - 1] || { speaker: 'A', text: 'Waiting for conversation...' };
-
-    // Calculate current time within the message for animations
-    const messageFrame = frame % framesPerMessage;
+    const currentMessage = conversation[index] || conversation[conversation.length - 1] || { speaker: 'A', text: '...' };
 
     return (
         <AbsoluteFill
             style={{
-                backgroundColor: '#1a1a2e',
-                color: 'white',
+                backgroundColor: '#f0f0f0',
                 fontFamily: 'sans-serif',
                 overflow: 'hidden'
             }}
         >
-            {/* Background Decoration */}
+            {/* Background Image */}
+            <AbsoluteFill style={{ zIndex: 0 }}>
+                <Img src={bgImage} style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                }} />
+            </AbsoluteFill>
+
+            {/* Speech Bubbles Area */}
             <div style={{
                 position: 'absolute',
-                top: -100,
-                left: -100,
-                width: 400,
-                height: 400,
-                borderRadius: '50%',
-                background: 'linear-gradient(45deg, #3a1c71, #d76d77, #ffaf7b)',
-                filter: 'blur(80px)',
-                opacity: 0.4
-            }} />
-
-            {/* Avatars Container */}
-            <div style={{
+                top: '10%',
+                left: 0,
+                width: '100%',
+                height: '40%',
+                zIndex: 2,
                 display: 'flex',
-                justifyContent: 'space-around',
-                alignItems: 'center',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                padding: '20px'
+            }}>
+                <div style={{
+                    position: 'relative',
+                    background: 'white',
+                    border: '4px solid black',
+                    borderRadius: '20px',
+                    padding: '20px 30px',
+                    maxWidth: '80%',
+                    boxShadow: '10px 10px 0px rgba(0,0,0,0.2)',
+                    transform: `rotate(${currentMessage.speaker === 'A' ? '-2deg' : '2deg'})`,
+                    transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                }}>
+                    <div style={{
+                        fontSize: '32px',
+                        fontWeight: 'bold',
+                        color: 'black',
+                        lineHeight: '1.3',
+                        textAlign: 'center'
+                    }}>
+                        {currentMessage.text}
+                    </div>
+
+                    {/* Speech Bubble Tail */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '-20px',
+                        left: currentMessage.speaker === 'A' ? '20%' : 'auto',
+                        right: currentMessage.speaker === 'B' ? '20%' : 'auto',
+                        width: '0',
+                        height: '0',
+                        borderLeft: '20px solid transparent',
+                        borderRight: '20px solid transparent',
+                        borderTop: '25px solid black',
+                    }} />
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '-14px',
+                        left: currentMessage.speaker === 'A' ? '22%' : 'auto',
+                        right: currentMessage.speaker === 'B' ? '22%' : 'auto',
+                        width: '0',
+                        height: '0',
+                        borderLeft: '16px solid transparent',
+                        borderRight: '16px solid transparent',
+                        borderTop: '22px solid white',
+                    }} />
+                </div>
+            </div>
+
+            {/* Characters Container */}
+            <div style={{
+                position: 'absolute',
+                bottom: 0,
                 width: '100%',
                 height: '60%',
-                padding: '0 40px'
+                zIndex: 1,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+                padding: '0'
             }}>
-                {/* Speaker A */}
+                {/* Speaker A (Left) */}
                 <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '20px',
-                    opacity: currentMessage.speaker === 'A' ? 1 : 0.5,
-                    transform: `scale(${currentMessage.speaker === 'A' ? 1.1 : 1})`,
-                    transition: 'all 0.3s ease-out'
+                    position: 'relative',
+                    left: '-40px',
+                    bottom: '-20px',
+                    transition: 'transform 0.3s ease-out',
+                    transform: currentMessage.speaker === 'A' ? 'scale(1.05) translateY(-10px)' : 'scale(1) translateY(0)',
+                    opacity: currentMessage.speaker === 'A' ? 1 : 0.9
                 }}>
                     <div style={{
-                        width: '150px',
-                        height: '150px',
-                        borderRadius: '50%',
-                        border: `4px solid ${currentMessage.speaker === 'A' ? '#6366f1' : '#ccc'}`,
+                        width: '380px',
+                        height: '780px',
                         overflow: 'hidden',
-                        boxShadow: currentMessage.speaker === 'A' ? '0 0 30px rgba(99, 102, 241, 0.4)' : 'none',
-                        background: '#333'
+                        // Removed border, background, shadow, borderRadius to just show the image
                     }}>
-                        {avatar1 ? (
-                            <img src={avatar1} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Speaker A" />
-                        ) : (
-                            <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '40px' }}>A</div>
-                        )}
+                        <Img src={person1} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Speaker A" />
                     </div>
-                    <div style={{ fontWeight: 'bold', fontSize: '24px', color: '#6366f1' }}>Speaker A</div>
                 </div>
 
-                {/* Speaker B */}
+                {/* Speaker B (Right) */}
                 <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '20px',
-                    opacity: currentMessage.speaker === 'B' ? 1 : 0.5,
-                    transform: `scale(${currentMessage.speaker === 'B' ? 1.1 : 1})`,
-                    transition: 'all 0.3s ease-out'
+                    position: 'relative',
+                    right: '250px',
+                    bottom: '-30px',
+                    transition: 'transform 0.3s ease-out',
+                    transform: currentMessage.speaker === 'B' ? 'scale(1.05) translateY(-10px)' : 'scale(1) translateY(0)',
+                    opacity: currentMessage.speaker === 'B' ? 1 : 0.9
                 }}>
                     <div style={{
-                        width: '150px',
-                        height: '150px',
-                        borderRadius: '50%',
-                        border: `4px solid ${currentMessage.speaker === 'B' ? '#a855f7' : '#ccc'}`,
+                        width: '370px',
+                        height: '800px',
                         overflow: 'hidden',
-                        boxShadow: currentMessage.speaker === 'B' ? '0 0 30px rgba(168, 85, 247, 0.4)' : 'none',
-                        background: '#333'
+                        // Removed border, background, shadow, borderRadius to just show the image
                     }}>
-                        {avatar2 ? (
-                            <img src={avatar2} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Speaker B" />
-                        ) : (
-                            <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '40px' }}>B</div>
-                        )}
+                        <Img src={person2} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Speaker B" />
                     </div>
-                    <div style={{ fontWeight: 'bold', fontSize: '24px', color: '#a855f7' }}>Speaker B</div>
                 </div>
             </div>
 
-            {/* Text Area */}
+            {/* Footer */}
             <div style={{
                 position: 'absolute',
-                bottom: '80px',
-                left: '40px',
-                right: '40px',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '20px',
-                padding: '30px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                minHeight: '150px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center'
+                bottom: '10px',
+                left: 0,
+                width: '100%',
+                textAlign: 'center',
+                zIndex: 3,
+                textShadow: '2px 2px 0 #000',
+                color: 'white'
             }}>
-                <div style={{
-                    fontSize: '14px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '2px',
-                    marginBottom: '10px',
-                    color: currentMessage.speaker === 'A' ? '#818cf8' : '#c084fc',
-                    fontWeight: 'bold'
-                }}>
-                    {currentMessage.speaker === 'A' ? 'Speaker A' : 'Speaker B'}
-                </div>
-                <div style={{ fontSize: '24px', lineHeight: '1.4', fontWeight: '500' }}>
-                    {currentMessage.text}
-                </div>
+                <div style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>Allowed by</div>
+                <div style={{ fontSize: '24px', fontWeight: '900', fontFamily: 'serif', marginTop: '-5px' }}>Zaarix AI</div>
             </div>
-
-            {/* Audio Player (Basic Implementation) */}
-            {/* If audioUrl exists, we try to play it. Note: sequencing audio in Remotion requires distinct <Audio> tags with startFrom props.
-                For this basic structure, we might skip complex audio syncing or just play the current one if simple. 
-                Given the "basic structure" request, let's keep it visual for now to avoid complexity with overlapping audio.
-            */}
         </AbsoluteFill>
     );
 };
