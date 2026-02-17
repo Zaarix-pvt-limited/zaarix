@@ -10,16 +10,13 @@ import { MyComposition } from '../Components/MyComposition';
 
 
 
-const avatars = [
-    { id: 1, name: 'Professional Man', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 2, name: 'Creative Woman', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 3, name: 'Tech Lead', url: 'https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 4, name: 'Marketing Guru', url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 5, name: 'Casual Gamer', url: 'https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 6, name: 'Crypto Enthusiast', url: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 7, name: 'Digital Artist', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 8, name: 'Business Mogul', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-];
+// Avatars will be fetched from API
+interface Avatar {
+    id: string; // Changed to string to match Cloudinary public_id
+    name: string;
+    url: string;
+    gender?: 'male' | 'female'; // We might need to guess this or add to metadata
+}
 
 const audios = [
     { id: 1, name: 'Professional Male', type: 'Voiceover', description: 'Deep, authoritative voice for corporate videos.' },
@@ -30,18 +27,13 @@ const audios = [
     { id: 6, name: 'Calm Narrator', type: 'Voiceover', description: 'Soothing voice for storytelling.' },
 ];
 
-const themes = [
-    { id: 1, name: 'Modern Minimal', color: 'bg-indigo-500' },
-    { id: 2, name: 'HighTech Glow', color: 'bg-blue-600' },
-    { id: 3, name: 'Vibrant Pop', color: 'bg-pink-500' },
-    { id: 4, name: 'Cyber Dark', color: 'bg-slate-900' },
-];
+
 
 interface Speaker {
     id: string;
     name: string;
     color: string;
-    avatarId?: number;
+    avatarId?: string; // Changed to string
     gender?: 'male' | 'female';
     voiceId?: number;
 }
@@ -58,10 +50,20 @@ const videoLengths = [
     { id: '120', name: '120 Seconds', desc: 'Extended coverage' },
 ];
 
+interface BackgroundImage {
+    id: string;
+    url: string;
+    name: string;
+}
+
 const CreateVideo = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [selectedTheme, setSelectedTheme] = useState<number | null>(null);
+    const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+    const [backgrounds, setBackgrounds] = useState<BackgroundImage[]>([]);
+    const [avatars, setAvatars] = useState<Avatar[]>([]);
+    const [isLoadingBackgrounds, setIsLoadingBackgrounds] = useState(true);
+    const [isLoadingAvatars, setIsLoadingAvatars] = useState(true);
     const [selectedVideoLength, setSelectedVideoLength] = useState<string>('30');
     const [mode, setMode] = useState("image");
 
@@ -80,6 +82,47 @@ const CreateVideo = () => {
     const [avatarSearch, setAvatarSearch] = useState('');
     const [voiceSearch, setVoiceSearch] = useState('');
     const [hasChanges, setHasChanges] = useState(false);
+
+    // Fetch backgrounds and avatars on mount
+    useState(() => {
+        const fetchBackgrounds = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/video/backgrounds');
+                const result = await response.json();
+                if (result.success) {
+                    setBackgrounds(result.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch backgrounds:", error);
+            } finally {
+                setIsLoadingBackgrounds(false);
+            }
+        };
+
+        const fetchAvatars = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/video/avatars');
+                const result = await response.json();
+                if (result.success) {
+                    // Map results to Avatar interface, guessing gender or defaulting
+                    const fetchedAvatars = result.data.map((img: any) => ({
+                        id: img.id,
+                        name: img.name,
+                        url: img.url,
+                        gender: 'male' // Defaulting to male as we don't have metadata yet
+                    }));
+                    setAvatars(fetchedAvatars);
+                }
+            } catch (error) {
+                console.error("Failed to fetch avatars:", error);
+            } finally {
+                setIsLoadingAvatars(false);
+            }
+        };
+
+        fetchBackgrounds();
+        fetchAvatars();
+    });
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -124,7 +167,7 @@ const CreateVideo = () => {
                 // Initialize speakers with default avatars/genders/voices if missing
                 const speakers = result.data.speakers.map((s: Speaker) => ({
                     ...s,
-                    avatarId: s.avatarId || 1,
+                    avatarId: s.avatarId ? String(s.avatarId) : (avatars.length > 0 ? avatars[0].id : '1'),
                     gender: s.gender || 'male',
                     voiceId: s.voiceId || (s.gender === 'female' ? 2 : 1)
                 }));
@@ -180,7 +223,8 @@ const CreateVideo = () => {
             const payload = {
                 email: "test@example.com",
                 chatData: chatData,
-                theme: selectedTheme,
+                theme: selectedTheme, // This is now the image URL
+                backgroundImage: selectedTheme
             };
 
             const response = await fetch('http://localhost:3000/api/video/create', {
@@ -408,26 +452,39 @@ const CreateVideo = () => {
                                 <Layout size={20} />
                                 <h2 className="text-lg font-medium"> Select Theme</h2>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                {themes.map((theme) => (
-                                    <div
-                                        key={theme.id}
-                                        onClick={() => setSelectedTheme(theme.id)}
-                                        className={`p-4 rounded-md cursor-pointer border transition-all text-center ${selectedTheme === theme.id
-                                            ? 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 ring-2 ring-gray-100 dark:ring-gray-800 shadow-sm'
-                                            : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
-                                            }`}
-                                    >
-                                        <div className={`w-full aspect-video rounded-sm mb-3 ${theme.color} opacity-80`} />
-                                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">{theme.name}</h3>
-                                        {selectedTheme === theme.id && (
-                                            <div className="mt-2 flex justify-center">
-                                                <CheckCircle2 size={16} className="text-gray-900 dark:text-white" />
+
+                            {isLoadingBackgrounds ? (
+                                <div className="flex justify-center p-8">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                                    {backgrounds.map((bg) => (
+                                        <div
+                                            key={bg.id}
+                                            onClick={() => setSelectedTheme(bg.url)}
+                                            className={`relative p-2 rounded-md cursor-pointer border transition-all text-center group ${selectedTheme === bg.url
+                                                ? 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 ring-2 ring-gray-100 dark:ring-gray-800 shadow-sm'
+                                                : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
+                                                }`}
+                                        >
+                                            <div className="w-full aspect-video rounded-sm mb-2 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                                <img
+                                                    src={bg.url}
+                                                    alt={bg.name}
+                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                />
                                             </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                                            <h3 className="text-xs font-medium text-gray-900 dark:text-white truncate px-1">{bg.name}</h3>
+                                            {selectedTheme === bg.url && (
+                                                <div className="absolute top-3 right-3 bg-white dark:bg-gray-900 rounded-full p-0.5 shadow-sm">
+                                                    <CheckCircle2 size={16} className="text-green-500" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </section>
                         {/* Action Section */}
                         {/* Action Section */}
@@ -544,13 +601,17 @@ const CreateVideo = () => {
                                                         </div>
 
                                                         <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
-                                                            {avatars
+                                                            {isLoadingAvatars ? (
+                                                                <div className="col-span-4 flex justify-center py-4">
+                                                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 dark:border-white"></div>
+                                                                </div>
+                                                            ) : avatars
                                                                 .filter(avatar => avatar.name.toLowerCase().includes(avatarSearch.toLowerCase()))
                                                                 .map(avatar => (
                                                                     <button
                                                                         key={avatar.id}
                                                                         onClick={() => updateSpeaker(speaker.id, { avatarId: avatar.id })}
-                                                                        className={`aspect-square rounded-sm overflow-hidden border-2 transition-all group/avatar ${speaker.avatarId === avatar.id ? ' scale-105 shadow-sm' : 'border-transparent opacity-40 hover:opacity-100'}`}
+                                                                        className={`aspect-square rounded-sm overflow-hidden border-2 transition-all group/avatar ${speaker.avatarId === avatar.id ? ' scale-105 shadow-sm border-indigo-500' : 'border-transparent opacity-70 hover:opacity-100'}`}
                                                                         title={avatar.name}
                                                                     >
                                                                         <img src={avatar.url} alt={avatar.name} className="w-full h-full object-cover transition-transform group-hover/avatar:scale-110" />
@@ -713,7 +774,8 @@ const CreateVideo = () => {
                                     inputProps={{
                                         conversation: generatedData,
                                         avatar1: analysisResult?.speakers[0]?.avatarId ? avatars.find(a => a.id === analysisResult.speakers[0].avatarId)?.url || "" : "",
-                                        avatar2: analysisResult?.speakers[1]?.avatarId ? avatars.find(a => a.id === analysisResult.speakers[1].avatarId)?.url || "" : ""
+                                        avatar2: analysisResult?.speakers[1]?.avatarId ? avatars.find(a => a.id === analysisResult.speakers[1].avatarId)?.url || "" : "",
+                                        backgroundImage: selectedTheme || ""
                                     }}
                                 />
                             </div>

@@ -1,6 +1,7 @@
 const { sendVideoReadyEmail } = require("../utils/mail");
 const geminiService = require("../Services/gemini.Service");
 const audioService = require("../Services/audio.Service");
+const imageService = require("../Services/image.Service");
 
 /**
  * Analyze chat content (text or image) using Gemini
@@ -99,7 +100,49 @@ const createVideo = async (req, res) => {
     }
 };
 
+/**
+ * Get list of background images from Cloudinary
+ */
+const getBackgroundImages = async (req, res) => {
+    try {
+        const images = await imageService.listImages('img');
+        res.status(200).json({
+            success: true,
+            data: images
+        });
+    } catch (error) {
+        console.error("Get Background Images Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch background images",
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Get list of avatar images from Cloudinary
+ */
+const getAvatarImages = async (req, res) => {
+    try {
+        const images = await imageService.listImages('avtar');
+        res.status(200).json({
+            success: true,
+            data: images
+        });
+    } catch (error) {
+        console.error("Get Avatar Images Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch avatar images",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createVideo,
-    analyzeChat
+    analyzeChat,
+    getBackgroundImages,
+    getAvatarImages
 };

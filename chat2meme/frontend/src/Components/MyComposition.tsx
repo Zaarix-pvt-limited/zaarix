@@ -14,9 +14,10 @@ interface RemotionVideoProps {
     conversation: Message[];
     avatar1: string; // URL or base64
     avatar2: string; // URL or base64
+    backgroundImage?: string; // URL for background
 }
 
-export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [], avatar1, avatar2 }) => {
+export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [], avatar1, avatar2, backgroundImage }) => {
     const { fps } = useVideoConfig();
     const frame = useCurrentFrame();
 
@@ -34,7 +35,7 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
         >
             {/* Background Image */}
             <AbsoluteFill style={{ zIndex: 0 }}>
-                <Img src={bgImage} style={{
+                <Img src={backgroundImage || bgImage} style={{
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover'
