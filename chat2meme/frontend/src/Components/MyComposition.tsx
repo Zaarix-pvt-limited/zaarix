@@ -142,7 +142,7 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
                     opacity: currentMessage.speaker === 'B' ? 1 : 0.9
                 }}>
                     <div style={{
-                        width: '370px',
+                        width: '390px',
                         height: '800px',
                         overflow: 'hidden',
                         // Removed border, background, shadow, borderRadius to just show the image
