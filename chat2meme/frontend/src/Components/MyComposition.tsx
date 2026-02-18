@@ -1,8 +1,6 @@
-import { AbsoluteFill, useVideoConfig, useCurrentFrame, spring, Audio, Img } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, Img } from 'remotion';
 import React from 'react';
 import bgImage from '../assets/image.png';
-import person1 from '../assets/person1.png';
-import person2 from '../assets/person2.png';
 
 interface Message {
     speaker: 'A' | 'B';
@@ -18,7 +16,7 @@ interface RemotionVideoProps {
 }
 
 export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [], avatar1, avatar2, backgroundImage }) => {
-    const { fps } = useVideoConfig();
+
     const frame = useCurrentFrame();
 
     const framesPerMessage = 120; // 4 seconds per message
@@ -180,7 +178,7 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
                         overflow: 'hidden',
                         // Removed border, background, shadow, borderRadius to just show the image
                     }}>
-                        <Img src={person1} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Speaker A" />
+                        <Img src={avatar1 || bgImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Speaker A" />
                     </div>
                 </div>
 
@@ -199,7 +197,7 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
                         overflow: 'hidden',
                         // Removed border, background, shadow, borderRadius to just show the image
                     }}>
-                        <Img src={person2} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Speaker B" />
+                        <Img src={avatar2 || bgImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Speaker B" />
                     </div>
                 </div>
             </div>
