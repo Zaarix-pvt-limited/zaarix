@@ -185,7 +185,7 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
                 {/* Speaker B (Right) */}
                 <div style={{
                     position: 'relative',
-                    right: '250px',
+                    right: '160px',
                     bottom: '-30px',
                     transition: 'transform 0.3s ease-out',
                     transform: currentMessage.speaker === 'B' ? 'scale(1.05) translateY(-10px)' : 'scale(1) translateY(0)',
@@ -193,7 +193,7 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
                 }}>
                     <div style={{
                         width: '390px',
-                        height: '800px',
+                        height: '820px',
                         overflow: 'hidden',
                         // Removed border, background, shadow, borderRadius to just show the image
                     }}>
