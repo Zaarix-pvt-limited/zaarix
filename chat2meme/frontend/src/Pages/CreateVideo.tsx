@@ -10,12 +10,12 @@ import { MyComposition } from '../Components/MyComposition';
 
 
 
-// Avatars will be fetched from API
+// Avatars will be fetched from MongoDB
 interface Avatar {
-    id: string; // Changed to string to match Cloudinary public_id
+    id: string;       // MongoDB _id
     name: string;
-    url: string;
-    gender?: 'male' | 'female'; // We might need to guess this or add to metadata
+    url: string;      // previewUrl — shown in selection UI
+    gender?: 'male' | 'female';
 }
 
 const audios = [
@@ -101,15 +101,15 @@ const CreateVideo = () => {
 
         const fetchAvatars = async () => {
             try {
-                const response = await fetch('http://localhost:3000/api/video/avatars');
+                // Fetch avatars from MongoDB (previewUrl shown in selection UI)
+                const response = await fetch('http://localhost:3000/api/avatar/all');
                 const result = await response.json();
                 if (result.success) {
-                    // Map results to Avatar interface, guessing gender or defaulting
-                    const fetchedAvatars = result.data.map((img: any) => ({
-                        id: img.id,
-                        name: img.name,
-                        url: img.url,
-                        gender: 'male' // Defaulting to male as we don't have metadata yet
+                    const fetchedAvatars = result.data.map((avatar: any) => ({
+                        id: avatar._id,
+                        name: avatar.name,
+                        url: avatar.previewUrl, // previewUrl for display
+                        gender: 'male'
                     }));
                     setAvatars(fetchedAvatars);
                 }

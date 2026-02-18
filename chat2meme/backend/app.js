@@ -11,6 +11,7 @@ const helmet = require("helmet");
 const authRoutes = require("./Routes/auth.Route");
 const { apiLimiter } = require("./Middleware/rateLimiter.Middleware");
 const videoRoutes = require("./Routes/video.Route");
+const avatarRoutes = require("./Routes/avatar.Route");
 
 
 // Allowed origins from env
@@ -75,6 +76,9 @@ app.use("/api/auth", apiLimiter, authRoutes);
 // Video Demo Routes
 
 app.use("/api/video", videoRoutes);
+
+// Avatar Routes
+app.use("/api/avatar", avatarRoutes);
 
 
 
