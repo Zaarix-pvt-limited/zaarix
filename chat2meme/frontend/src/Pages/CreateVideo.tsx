@@ -256,7 +256,7 @@ const CreateVideo = () => {
 
 
     return (
-        <div className="flex h-full  w-full bg-white dark:bg-[#0B0F19] overflow-hidden">
+        <div className="flex h-full  w-full bg-white dark:bg-[#171e2e] overflow-hidden">
             {/* Main Content Area */}
             <div className={`flex-1 flex flex-col min-w-0 transition-all duration-500 ${editingSpeakerId ? 'pr-0' : ''}`}>
                 <div className="p-6 h-full overflow-y-auto w-full pb-20 custom-scrollbar">

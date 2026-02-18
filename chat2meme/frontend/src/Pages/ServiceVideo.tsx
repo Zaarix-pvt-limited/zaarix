@@ -62,11 +62,11 @@ const ServiceVideo = () => {
     return (
         <div className="p-6 h-full overflow-y-auto w-full bg-white dark:bg-[#0B0F19] text-gray-900 dark:text-white">
             {/* Creation Section */}
-            <div className="mb-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+            <div className="mb-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-md p-8 text-white shadow-xl relative overflow-hidden">
                 <div className="relative z-10 max-w-2xl">
                     <h1 className="text-3xl font-bold mb-4">Start Creating Your Masterpiece</h1>
                     <p className="text-indigo-100 mb-8 text-lg">Turn your ideas into stunning videos with AI. Choose from thousands of templates or start from scratch.</p>
-                    <Link to="/service/video/create" className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-sm w-fit">
+                    <Link to="/service/video/create" className="bg-white text-indigo-600 px-6 py-3 rounded-sm font-bold hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-sm w-fit">
                         <Plus size={20} />
                         Create New Video
                     </Link>
@@ -96,7 +96,7 @@ const ServiceVideo = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {featuredVideos.map((video) => (
-                        <div key={video.id} className="group bg-white dark:bg-[#151B2B] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
+                        <div key={video.id} className="group bg-white dark:bg-[#151B2B] border border-gray-200 dark:border-gray-800 rounded-sm overflow-hidden hover:shadow-lg transition-all duration-300">
                             {/* Thumbnail */}
                             <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
                                 <img

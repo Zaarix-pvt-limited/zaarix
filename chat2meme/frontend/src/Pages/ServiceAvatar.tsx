@@ -62,7 +62,7 @@ const avatars = [
 
 const ServiceAvatar = () => {
     return (
-        <div className="p-6 h-full overflow-y-auto w-full bg-white dark:bg-[#0B0F19] text-gray-900 dark:text-white">
+        <div className="p-6 h-full overflow-y-auto w-full bg-white dark:bg-[#171e2e] text-gray-900 dark:text-white">
             {/* Header */}
             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -70,11 +70,11 @@ const ServiceAvatar = () => {
                     <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage and select your AI avatars.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#151B2B] border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#303c56] border border-gray-200 dark:border-gray-800 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <Filter size={18} />
                         <span>Filter</span>
                     </button>
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
+                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-sm font-medium flex items-center gap-2 transition-colors">
                         <Plus size={18} />
                         Create Avatar
                     </button>
@@ -87,14 +87,14 @@ const ServiceAvatar = () => {
                 <input
                     type="text"
                     placeholder="Search avatars..."
-                    className="w-full bg-gray-50 dark:bg-[#151B2B] border border-gray-200 dark:border-gray-800 rounded-lg pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-gray-500"
+                    className="w-full bg-gray-50 dark:bg-[#303c56] border border-gray-200 dark:border-gray-800 rounded-sm pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-gray-500"
                 />
             </div>
 
             {/* Avatar Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {avatars.map((avatar) => (
-                    <div key={avatar.id} className="group relative bg-white dark:bg-[#151B2B] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <div key={avatar.id} className="group relative bg-white dark:bg-[#303c56] border border-gray-200 dark:border-gray-800 rounded-sm overflow-hidden hover:shadow-lg transition-all duration-300">
                         {/* Image Container */}
                         <div className="aspect-square relative overflow-hidden bg-gray-100 dark:bg-gray-800">
                             <img

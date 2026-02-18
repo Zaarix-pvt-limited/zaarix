@@ -17,11 +17,11 @@ interface FormData {
 }
 
 export default function AuthPage() {
-  const [form, setForm] = useState<FormData>({ 
-    firstName: "", 
-    lastName: "", 
-    email: "", 
-    password: "" 
+  const [form, setForm] = useState<FormData>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: ""
   });
   const { user } = useAuthStore();
   const [isSignup, setIsSignup] = useState<boolean>(false);
@@ -42,14 +42,14 @@ export default function AuthPage() {
 
   const handleOtpInput = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const value = e.target.value;
-  
+
     // Accept only numbers
     if (!/^[0-9]?$/.test(value)) return;
-  
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-  
+
     // Auto-focus next input
     if (value && index < 5) {
       const nextInput = e.target.nextElementSibling as HTMLInputElement;
@@ -67,22 +67,22 @@ export default function AuthPage() {
 
   const handleVerifyOtp = async () => {
     const code = otp.join("");
-  
+
     if (code.length !== 6) {
       alert("Please enter all 6 digits");
       return;
     }
-  
+
     try {
       setLoading(true);
-  
+
       await verifyOtpRequest({
         email: userEmail,
         otp: code,
       });
 
       navigate("/dashboard/video");
-  
+
     } catch (error: any) {
       console.error("OTP verification failed:", error);
       alert(error.message || "Invalid OTP");
@@ -90,18 +90,18 @@ export default function AuthPage() {
       setLoading(false);
     }
   };
-  
+
   const handleResendOtp = async () => {
     try {
       setResendLoading(true);
-  
+
       await resendOtpRequest({ email: userEmail });
 
       alert("OTP resent successfully! Check your email.");
-      
+
       // Clear OTP inputs
       setOtp(["", "", "", "", "", ""]);
-  
+
     } catch (error: any) {
       console.error("Resend OTP failed:", error);
       alert(error.message || "Failed to resend OTP");
@@ -116,7 +116,7 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    
+
     // Validation
     if (!form.email || !form.password) {
       alert("Please fill in all required fields");
@@ -129,7 +129,7 @@ export default function AuthPage() {
     }
 
     setIsLoading(true);
-  
+
     try {
       if (isSignup) {
         const fullName = `${form.firstName} ${form.lastName}`;
@@ -171,7 +171,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col lg:flex-row p-3 bg-gray-100">
+    <div className="h-screen w-screen flex flex-col lg:flex-row p-3 bg-gray-100 dark:bg-[#171e2e]">
       {/* Left Side - AI Agents Showcase */}
       <div className="h-[40vh] lg:h-full w-full lg:w-[45%] bg-linear-to-br from-gray-900 via-purple-900 to-black rounded-3xl p-6 lg:p-12 flex flex-col justify-between overflow-hidden relative mb-4 lg:mb-0">
         <img
@@ -193,66 +193,66 @@ export default function AuthPage() {
 
             <div className="flex flex-col items-center justify-center pt-35 px-6">
 
-            {/* Header */}
-            <div className="text-center mb-12">
-              <h2 className="text-5xl font-light tracking-tight text-black mb-3">
-                Verify Your Email
-              </h2>
-              <p className="text-gray-500 text-lg">Enter the 6-digit code sent to</p>
-              <p className="text-black font-semibold text-lg mt-1">{userEmail}</p>
-            </div>
-          
-            {/* OTP Inputs */}
-            <div className="flex justify-center gap-4 mb-10">
-              {[...Array(6)].map((_, i) => (
-                <input
-                  key={i}
-                  type="text"
-                  maxLength={1}
-                  value={otp[i]}
-                  className="w-14 h-16 text-center border border-gray-300 rounded-lg
-                            text-2xl bg-white text-black
+              {/* Header */}
+              <div className="text-center mb-12">
+                <h2 className="text-5xl font-light tracking-tight text-black dark:text-white mb-3">
+                  Verify Your Email
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 text-lg">Enter the 6-digit code sent to</p>
+                <p className="text-black dark:text-white font-semibold text-lg mt-1">{userEmail}</p>
+              </div>
+
+              {/* OTP Inputs */}
+              <div className="flex justify-center gap-4 mb-10">
+                {[...Array(6)].map((_, i) => (
+                  <input
+                    key={i}
+                    type="text"
+                    maxLength={1}
+                    value={otp[i]}
+                    className="w-14 h-16 text-center border border-gray-300 dark:border-gray-600 rounded-lg
+                            text-2xl bg-white dark:bg-gray-800 text-black dark:text-white
                             focus:outline-none focus:border-1 
-                            focus:border-black shadow-sm transition-all"
-                  onChange={(e) => handleOtpInput(e, i)}
-                  onKeyDown={(e) => handleOtpKeyDown(e, i)}
-                  disabled={loading}
-                />
-              ))}
-            </div>
-          
-            {/* Verify Button */}
-            <button
-              onClick={handleVerifyOtp}
-              disabled={loading || otp.join("").length !== 6}
-              className="w-56 py-3 bg-black text-white rounded-xl text-lg font-medium
+                            focus:border-black dark:focus:border-white shadow-sm transition-all"
+                    onChange={(e) => handleOtpInput(e, i)}
+                    onKeyDown={(e) => handleOtpKeyDown(e, i)}
+                    disabled={loading}
+                  />
+                ))}
+              </div>
+
+              {/* Verify Button */}
+              <button
+                onClick={handleVerifyOtp}
+                disabled={loading || otp.join("").length !== 6}
+                className="w-56 py-3 bg-black text-white rounded-xl text-lg font-medium
                          shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all
                          disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Verifying...</span>
-                </div>
-              ) : (
-                "Verify Email"
-              )}
-            </button>
-          
-            {/* Resend */}
-            <div className="text-center mt-8">
-              <p className="text-sm text-gray-500 mb-2">Didn't receive the code?</p>
-              <button
-                onClick={handleResendOtp}
-                disabled={resendLoading}
-                className="text-sm text-black font-medium hover:opacity-70 underline 
-                          disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                {resendLoading ? "Sending..." : "Resend Code"}
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Verifying...</span>
+                  </div>
+                ) : (
+                  "Verify Email"
+                )}
               </button>
+
+              {/* Resend */}
+              <div className="text-center mt-8">
+                <p className="text-sm text-gray-500 mb-2">Didn't receive the code?</p>
+                <button
+                  onClick={handleResendOtp}
+                  disabled={resendLoading}
+                  className="text-sm text-black font-medium hover:opacity-70 underline 
+                          disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  {resendLoading ? "Sending..." : "Resend Code"}
+                </button>
+              </div>
+
             </div>
-          
-          </div>
 
 
 
@@ -260,17 +260,16 @@ export default function AuthPage() {
             // Auth Form
             <div className="rounded-md overflow-hidden p-6 lg:p-8">
               {/* Toggle */}
-              <div className="flex justify-between bg-white rounded-lg overflow-hidden mb-8">
+              <div className="flex justify-between bg-white dark:bg-gray-800 rounded-lg overflow-hidden mb-8">
                 <button
                   onClick={() => {
                     setIsSignup(false);
                     setForm({ firstName: "", lastName: "", email: "", password: "" });
                   }}
-                  className={`w-1/2 py-3 rounded-lg text-lg font-light transition-all ${
-                    !isSignup
-                      ? "bg-black text-white"
-                      : "text-black hover:text-gray-900"
-                  }`}
+                  className={`w-1/2 py-3 rounded-lg text-lg font-light transition-all ${!isSignup
+                      ? "bg-black dark:bg-white text-white dark:text-black"
+                      : "text-black dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                    }`}
                 >
                   Log In
                 </button>
@@ -279,21 +278,20 @@ export default function AuthPage() {
                     setIsSignup(true);
                     setForm({ firstName: "", lastName: "", email: "", password: "" });
                   }}
-                  className={`w-1/2 py-3 rounded-lg text-lg font-light transition-all ${
-                    isSignup
-                      ? "bg-black text-white shadow-md"
-                      : "text-black hover:text-gray-900"
-                  }`}
+                  className={`w-1/2 py-3 rounded-lg text-lg font-light transition-all ${isSignup
+                      ? "bg-black dark:bg-white text-white dark:text-black shadow-md"
+                      : "text-black dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                    }`}
                 >
                   Sign Up
                 </button>
               </div>
 
               {/* Title */}
-              <h2 className="text-3xl lg:text-4xl font-light mb-2 text-gray-900">
+              <h2 className="text-3xl lg:text-4xl font-light mb-2 text-gray-900 dark:text-white">
                 {isSignup ? "Create your account" : "Welcome back"}
               </h2>
-              <p className="text-sm text-gray-600 mb-8 lg:mb-10">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 lg:mb-10">
                 {isSignup
                   ? "Set up your workspace and start managing projects with confidence"
                   : "Log in to access your dashboard and continue your work"}
@@ -303,7 +301,7 @@ export default function AuthPage() {
                 {isSignup && (
                   <div className="flex flex-col sm:flex-row gap-5">
                     <div className="flex flex-col w-full sm:w-1/2">
-                      <label className="text-sm font-medium mb-2 text-gray-700">
+                      <label className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                         First name *
                       </label>
                       <input
@@ -312,13 +310,13 @@ export default function AuthPage() {
                         value={form.firstName}
                         onChange={handleChange}
                         placeholder="John"
-                        className="px-1 py-2 focus:outline-none focus:ring-0 border-b-2 border-gray-300 
-                                  focus:border-black transition text-sm lg:text-base"
+                        className="px-1 py-2 focus:outline-none focus:ring-0 border-b-2 border-gray-300 dark:border-gray-600
+                                  focus:border-black dark:focus:border-white transition text-sm lg:text-base bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400"
                         disabled={isLoading}
                       />
                     </div>
                     <div className="flex flex-col w-full sm:w-1/2">
-                      <label className="text-sm font-medium mb-2 text-gray-700">
+                      <label className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                         Last name *
                       </label>
                       <input
@@ -327,8 +325,8 @@ export default function AuthPage() {
                         value={form.lastName}
                         onChange={handleChange}
                         placeholder="Doe"
-                        className="px-1 py-2 focus:outline-none focus:ring-0 border-b-2 border-gray-300 
-                                  focus:border-black transition text-sm lg:text-base"
+                        className="px-1 py-2 focus:outline-none focus:ring-0 border-b-2 border-gray-300 dark:border-gray-600
+                                  focus:border-black dark:focus:border-white transition text-sm lg:text-base bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400"
                         disabled={isLoading}
                       />
                     </div>
@@ -336,7 +334,7 @@ export default function AuthPage() {
                 )}
 
                 <div className="flex flex-col">
-                  <label className="text-sm font-medium mb-2 text-gray-700">
+                  <label className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Email *
                   </label>
                   <input
@@ -345,14 +343,14 @@ export default function AuthPage() {
                     value={form.email}
                     onChange={handleChange}
                     placeholder="example@email.com"
-                    className="px-1 py-2 focus:outline-none focus:ring-0 border-b-2 border-gray-300 
-                              focus:border-black transition text-sm lg:text-base"
+                    className="px-1 py-2 focus:outline-none focus:ring-0 border-b-2 border-gray-300 dark:border-gray-600
+                              focus:border-black dark:focus:border-white transition text-sm lg:text-base bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400"
                     disabled={isLoading}
                   />
                 </div>
 
                 <div className="flex flex-col relative">
-                  <label className="text-sm font-medium mb-2 text-gray-700">
+                  <label className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Password *
                   </label>
                   <input
@@ -361,8 +359,8 @@ export default function AuthPage() {
                     value={form.password}
                     onChange={handleChange}
                     placeholder="••••••••"
-                    className="px-1 py-2 focus:outline-none focus:ring-0 border-b-2 border-gray-300 
-                              focus:border-black transition text-sm lg:text-base pr-10"
+                    className="px-1 py-2 focus:outline-none focus:ring-0 border-b-2 border-gray-300 dark:border-gray-600
+                              focus:border-black dark:focus:border-white transition text-sm lg:text-base pr-10 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400"
                     disabled={isLoading}
                   />
                   <button
@@ -406,15 +404,15 @@ export default function AuthPage() {
 
               {/* Divider */}
               <div className="flex items-center gap-4 my-8">
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <span className="text-sm text-gray-500">or</span>
-                <div className="flex-1 h-px bg-gray-300"></div>
+                <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
+                <span className="text-sm text-gray-500 dark:text-gray-400">or</span>
+                <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
               </div>
 
               {/* Social Login */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <button className="flex-1 py-3 px-4 border border-gray-300 rounded-lg bg-white 
-                                  hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                <button className="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800
+                                  hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
@@ -433,18 +431,18 @@ export default function AuthPage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  <span className="text-sm font-medium text-gray-700">Continue with Google</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Continue with Google</span>
                 </button>
               </div>
 
               {/* Terms */}
-              <p className="text-center text-xs text-gray-500 mt-6 px-2">
+              <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-6 px-2">
                 By continuing, you agree to our{" "}
-                <button className="text-black hover:underline font-medium">
+                <button className="text-black dark:text-white hover:underline font-medium">
                   Terms of Service
                 </button>{" "}
                 and{" "}
-                <button className="text-black hover:underline font-medium">
+                <button className="text-black dark:text-white hover:underline font-medium">
                   Privacy Policy
                 </button>
               </p>

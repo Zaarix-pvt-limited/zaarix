@@ -71,14 +71,14 @@ const handpicked = [
 
 const ServiceAudio = () => {
     return (
-        <div className="p-6 h-full overflow-y-auto w-full bg-white dark:bg-[#0B0F19] text-gray-900 dark:text-white">
+        <div className="p-6 h-full overflow-y-auto w-full bg-white dark:bg-[#171e2e] text-gray-900 dark:text-white">
             {/* Header / Search */}
             <div className="mb-8 space-y-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold hidden md:block">Voice Library</h1>
                     <div className="flex items-center gap-4 text-sm text-gray-400">
                         <span>0 / 3 slots used</span>
-                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
+                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-sm font-medium flex items-center gap-2 transition-colors">
                             <Plus size={16} />
                             Create a Voice
                         </button>
@@ -91,10 +91,10 @@ const ServiceAudio = () => {
                         <input
                             type="text"
                             placeholder="Search library voices..."
-                            className="w-full bg-gray-100 dark:bg-[#151B2B] border border-gray-200 dark:border-gray-800 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-500"
+                            className="w-full bg-gray-100 dark:bg-[#303c56] border border-gray-200 dark:border-gray-800 rounded-sm pl-10 pr-4 py-2.5 outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-500"
                         />
                     </div>
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-[#151B2B] border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-[#303c56] border border-gray-200 dark:border-gray-800 rounded-sm hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
                         <Filter size={18} />
                         <span>Filters</span>
                     </button>
@@ -123,12 +123,12 @@ const ServiceAudio = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {trendingVoices.map((voice, idx) => (
-                        <div key={idx} className="bg-gray-50 dark:bg-[#151B2B] p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all cursor-pointer group">
+                        <div key={idx} className="bg-gray-50 dark:bg-[#303c56] p-4 rounded-md border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all cursor-pointer group">
                             <div className="flex items-start justify-between mb-3">
                                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${voice.gradient} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
                                     {voice.name[0]}
                                     {voice.verified && (
-                                        <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-0.5 border-2 border-[#151B2B]">
+                                        <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-0.5 border-2 border-[#303c56]">
                                             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                             </svg>
@@ -139,7 +139,7 @@ const ServiceAudio = () => {
                                     <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400">
                                         <Play size={20} fill="currentColor" />
                                     </button>
-                                    <button className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors shadow-sm">
+                                    <button className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5 rounded-sm text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors shadow-sm">
                                         Add
                                     </button>
                                 </div>
@@ -175,7 +175,7 @@ const ServiceAudio = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {handpicked.map((item, idx) => (
-                        <div key={idx} className={`relative h-40 rounded-xl overflow-hidden p-5 flex flex-col justify-between group cursor-pointer ${item.bg}`}>
+                        <div key={idx} className={`relative h-40 rounded-md overflow-hidden p-5 flex flex-col justify-between group cursor-pointer ${item.bg}`}>
                             {/* Overlay for darker backgrounds */}
                             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
 
@@ -202,7 +202,7 @@ const ServiceAudio = () => {
 
                 <div className="space-y-2">
                     {[1, 2].map((_, i) => (
-                        <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-[#151B2B] transition-colors group cursor-pointer">
+                        <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-[#303c56] transition-colors group cursor-pointer">
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white">
                                     <Users size={20} />
