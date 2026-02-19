@@ -1,4 +1,4 @@
-import { AbsoluteFill, useCurrentFrame, Img } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, Img, Audio, Sequence } from 'remotion';
 import React from 'react';
 import bgImage from '../assets/image.png';
 
@@ -41,6 +41,13 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
                     objectFit: 'cover'
                 }} />
             </AbsoluteFill>
+
+            {/* Audio Track */}
+            {conversation.map((msg, i) => (
+                <Sequence key={i} from={i * framesPerMessage} durationInFrames={framesPerMessage}>
+                    {msg.audioUrl && <Audio src={msg.audioUrl} />}
+                </Sequence>
+            ))}
 
             {/* Speech Bubbles Area */}
             <div style={{
