@@ -5,7 +5,7 @@ const emotionSchema = new mongoose.Schema(
         emotion: {
             type: String,
             required: true,
-            enum: ["neutral", "happy", "angry", "sad", "surprised", "excited", "confused"],
+            enum: ["funny", "confusing", "sad", "angry", "happy", "neutral", "surprised", "excited", "confused"],
         },
         url: {
             type: String,
@@ -38,12 +38,17 @@ const avatarSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Helper: get URL for a specific emotion, fallback to neutral
+// Helper: get URL for a specific emotion, fallback to previewUrl
 avatarSchema.methods.getEmotionUrl = function (emotion) {
+    console.log(`[getEmotionUrl] Looking for "${emotion}" in [${this.emotions.map(e => e.emotion).join(', ')}]`);
     const match = this.emotions.find((e) => e.emotion === emotion);
-    if (match) return match.url;
-    const neutral = this.emotions.find((e) => e.emotion === "neutral");
-    return neutral ? neutral.url : this.previewUrl;
+    if (match) {
+        console.log(`[getEmotionUrl] ✅ Found: ${match.url}`);
+        return match.url;
+    }
+    // No exact match — return previewUrl as fallback
+    console.log(`[getEmotionUrl] ❌ No match for "${emotion}". Falling back to previewUrl.`);
+    return this.previewUrl;
 };
 
 // Helper: get all available emotion labels for this avatar

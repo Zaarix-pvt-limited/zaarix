@@ -1,5 +1,37 @@
 const { GoogleGenAI } = require("@google/genai");
 
+// Fixed emotion set — must match the emotion labels stored in MongoDB avatar documents
+const AVATAR_EMOTIONS = ["funny", "confusing", "sad", "angry", "happy"];
+
+// Map any AI-returned emotion to the closest valid DB emotion
+const EMOTION_MAP = {
+    // Direct matches
+    funny: "funny",
+    confusing: "confusing",
+    confused: "confusing",
+    sad: "sad",
+    angry: "angry",
+    happy: "happy",
+    // Common AI alternatives → mapped to closest
+    neutral: "funny",       // neutral chat → funny (default fallback)
+    surprised: "funny",     // surprised → funny
+    disgusted: "angry",     // disgusted → angry
+    fearful: "sad",         // fearful → sad
+    excited: "happy",       // excited → happy
+    joy: "happy",
+    fear: "sad",
+    disgust: "angry",
+    surprise: "funny",
+    anticipation: "happy",
+    trust: "happy",
+};
+
+function sanitizeEmotion(emotion) {
+    if (!emotion) return "funny"; // default
+    const lower = emotion.toLowerCase().trim();
+    return EMOTION_MAP[lower] || "funny"; // fallback to funny if unknown
+}
+
 class GeminiService {
     constructor() {
         this.apiKey = process.env.GEMINI_API_KEY;
@@ -7,7 +39,6 @@ class GeminiService {
         if (this.isMock) {
             console.warn("⚠️ GEMINI_API_KEY is not set correctly. Using MOCK mode for demonstration.");
         } else {
-            // Updated SDK initialization
             this.client = new GoogleGenAI({
                 apiKey: this.apiKey
             });
@@ -16,7 +47,6 @@ class GeminiService {
 
     async analyzeChatContent({ text, imageBase64, imageMimeType }) {
         if (this.isMock) {
-            // Simulate delay
             await new Promise(resolve => setTimeout(resolve, 2000));
             return {
                 speakers: [
@@ -24,9 +54,9 @@ class GeminiService {
                     { id: "2", name: "User B", color: "#3b82f6" }
                 ],
                 messages: [
-                    { speakerId: "1", text: "Hey, did you see the new update?" },
-                    { speakerId: "2", text: "Yeah! The chat analysis is sick." },
-                    { speakerId: "1", text: "Gemini is pretty powerful for this." }
+                    { speakerId: "1", text: "Hey, did you see the new update?", emotion: "happy" },
+                    { speakerId: "2", text: "Yeah! The chat analysis is sick.", emotion: "funny" },
+                    { speakerId: "1", text: "Gemini is pretty powerful for this.", emotion: "confusing" }
                 ]
             };
         }
@@ -36,20 +66,24 @@ class GeminiService {
                 Analyze the following chat content and provide a structured JSON response.
                 Detect all speakers, assign them a unique ID, and provide their messages in chronological order.
                 
+                For each message, also pick the single best matching emotion from this fixed list:
+                ${JSON.stringify(AVATAR_EMOTIONS)}
+                
                 Requirements:
                 1. Detect speakers and their names.
                 2. Extract every message with the correct speaker identification.
-                3. Return the data in the following JSON format:
+                3. For each message, choose the most fitting emotion from the list above based on the message content and tone.
+                4. Return the data in the following JSON format ONLY:
                 {
                     "speakers": [
                         { "id": "uuid/string", "name": "Speaker Name", "color": "suggested_hex_color" }
                     ],
                     "messages": [
-                        { "speakerId": "id_from_above", "text": "The message text" }
+                        { "speakerId": "id_from_above", "text": "The message text", "emotion": "one_of_the_emotions_above" }
                     ]
                 }
                 
-                Respond ONLY with the JSON block.
+                Respond ONLY with the JSON block. No explanation.
             `;
 
             let parts = [{ text: promptContent }];
@@ -65,15 +99,13 @@ class GeminiService {
                 parts.push({ text });
             }
 
-            // Using the requested model and SDK structure
             const response = await this.client.models.generateContent({
-                model: "gemini-3-flash-preview", // Successful in test!
+                model: "gemini-3-flash-preview",
                 contents: [
                     { role: "user", parts }
                 ]
             });
 
-            // The new SDK returns response.text directly or via parts
             let responseText = "";
             if (response.text) {
                 responseText = response.text;
@@ -95,3 +127,5 @@ class GeminiService {
 }
 
 module.exports = new GeminiService();
+module.exports.AVATAR_EMOTIONS = AVATAR_EMOTIONS;
+module.exports.sanitizeEmotion = sanitizeEmotion;

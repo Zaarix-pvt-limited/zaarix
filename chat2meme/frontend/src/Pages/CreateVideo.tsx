@@ -83,6 +83,7 @@ const CreateVideo = () => {
     const [voiceSearch, setVoiceSearch] = useState('');
     const [hasChanges, setHasChanges] = useState(false);
 
+
     // Fetch backgrounds and avatars on mount
     useState(() => {
         const fetchBackgrounds = async () => {
@@ -216,15 +217,22 @@ const CreateVideo = () => {
                 return {
                     speaker: speakerLabel,
                     text: msg.text,
+                    emotion: (msg as any).emotion || 'neutral', // emotion from AI analysis
                     voiceId: analysisResult.speakers.find(s => s.id === msg.speakerId)?.voiceId
                 };
             });
 
+            // Extract distinct avatar IDs for each speaker
+            const avatarIdA = analysisResult.speakers[0]?.avatarId;
+            const avatarIdB = analysisResult.speakers[1]?.avatarId;
+
             const payload = {
                 email: "test@example.com",
                 chatData: chatData,
-                theme: selectedTheme, // This is now the image URL
-                backgroundImage: selectedTheme
+                theme: selectedTheme,
+                backgroundImage: selectedTheme,
+                avatarIdA, // Avatar for Speaker A
+                avatarIdB, // Avatar for Speaker B
             };
 
             const response = await fetch('http://localhost:3000/api/video/create', {
@@ -237,6 +245,7 @@ const CreateVideo = () => {
 
             if (result.success) {
                 console.log("✅ Video Generation Successful!", result.data);
+                console.log("📦 First message sample:", JSON.stringify(result.data.chatData[0], null, 2));
                 setGeneratedData(result.data.chatData);
                 setShowVideo(true);
             } else {
@@ -610,7 +619,9 @@ const CreateVideo = () => {
                                                                 .map(avatar => (
                                                                     <button
                                                                         key={avatar.id}
-                                                                        onClick={() => updateSpeaker(speaker.id, { avatarId: avatar.id })}
+                                                                        onClick={() => {
+                                                                            updateSpeaker(speaker.id, { avatarId: avatar.id });
+                                                                        }}
                                                                         className={`aspect-square rounded-sm overflow-hidden border-2 transition-all group/avatar ${speaker.avatarId === avatar.id ? ' scale-105 shadow-sm border-indigo-500' : 'border-transparent opacity-70 hover:opacity-100'}`}
                                                                         title={avatar.name}
                                                                     >
@@ -773,8 +784,13 @@ const CreateVideo = () => {
                                     controls
                                     inputProps={{
                                         conversation: generatedData,
-                                        avatar1: analysisResult?.speakers[0]?.avatarId ? avatars.find(a => a.id === analysisResult.speakers[0].avatarId)?.url || "" : "",
-                                        avatar2: analysisResult?.speakers[1]?.avatarId ? avatars.find(a => a.id === analysisResult.speakers[1].avatarId)?.url || "" : "",
+                                        // Use specific avatars for Speaker A and B
+                                        avatar1: analysisResult?.speakers[0]?.avatarId
+                                            ? avatars.find(a => a.id === analysisResult.speakers[0].avatarId)?.url || ""
+                                            : "",
+                                        avatar2: analysisResult?.speakers[1]?.avatarId
+                                            ? avatars.find(a => a.id === analysisResult.speakers[1].avatarId)?.url || ""
+                                            : "",
                                         backgroundImage: selectedTheme || ""
                                     }}
                                 />

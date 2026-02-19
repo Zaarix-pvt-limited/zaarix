@@ -6,13 +6,15 @@ interface Message {
     speaker: 'A' | 'B';
     text: string;
     audioUrl?: string;
+    emotion?: string;   // emotion label from AI (e.g. 'happy', 'sad')
+    avatarUrl?: string; // resolved from backend: avatar image for this emotion
 }
 
 interface RemotionVideoProps {
     conversation: Message[];
-    avatar1: string; // URL or base64
-    avatar2: string; // URL or base64
-    backgroundImage?: string; // URL for background
+    avatar1: string; // fallback URL for speaker A
+    avatar2: string; // fallback URL for speaker B
+    backgroundImage?: string;
 }
 
 export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [], avatar1, avatar2, backgroundImage }) => {
@@ -163,41 +165,49 @@ export const MyComposition: React.FC<RemotionVideoProps> = ({ conversation = [],
                 alignItems: 'flex-end',
                 padding: '0'
             }}>
-                {/* Speaker A (Left) */}
+                {/* Speaker A — Left, always at fixed position */}
                 <div style={{
                     position: 'relative',
                     left: '-40px',
                     bottom: '-20px',
-                    transition: 'transform 0.3s ease-out',
+                    transition: 'transform 0.3s ease-out, opacity 0.3s ease-out',
                     transform: currentMessage.speaker === 'A' ? 'scale(1.05) translateY(-10px)' : 'scale(1) translateY(0)',
-                    opacity: currentMessage.speaker === 'A' ? 1 : 0.9
+                    opacity: currentMessage.speaker === 'A' ? 1 : 0.9,
+                    zIndex: currentMessage.speaker === 'A' ? 2 : 1,
                 }}>
-                    <div style={{
-                        width: '380px',
-                        height: '780px',
-                        overflow: 'hidden',
-                        // Removed border, background, shadow, borderRadius to just show the image
-                    }}>
-                        <Img src={avatar1 || bgImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Speaker A" />
+                    <div style={{ width: '380px', height: '780px', overflow: 'hidden' }}>
+                        <Img
+                            src={
+                                currentMessage.speaker === 'A'
+                                    ? (currentMessage.avatarUrl || avatar1 || bgImage)  // active: use emotion URL
+                                    : (avatar1 || bgImage)                               // inactive: always static preview
+                            }
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            alt="Speaker A"
+                        />
                     </div>
                 </div>
 
-                {/* Speaker B (Right) */}
+                {/* Speaker B — Right, always at fixed position */}
                 <div style={{
                     position: 'relative',
                     right: '160px',
                     bottom: '-30px',
-                    transition: 'transform 0.3s ease-out',
+                    transition: 'transform 0.3s ease-out, opacity 0.3s ease-out',
                     transform: currentMessage.speaker === 'B' ? 'scale(1.05) translateY(-10px)' : 'scale(1) translateY(0)',
-                    opacity: currentMessage.speaker === 'B' ? 1 : 0.9
+                    opacity: currentMessage.speaker === 'B' ? 1 : 0.9,
+                    zIndex: currentMessage.speaker === 'B' ? 2 : 1,
                 }}>
-                    <div style={{
-                        width: '390px',
-                        height: '820px',
-                        overflow: 'hidden',
-                        // Removed border, background, shadow, borderRadius to just show the image
-                    }}>
-                        <Img src={avatar2 || bgImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Speaker B" />
+                    <div style={{ width: '390px', height: '820px', overflow: 'hidden' }}>
+                        <Img
+                            src={
+                                currentMessage.speaker === 'B'
+                                    ? (currentMessage.avatarUrl || avatar2 || bgImage)  // active: use emotion URL
+                                    : (avatar2 || bgImage)                               // inactive: always static preview
+                            }
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            alt="Speaker B"
+                        />
                     </div>
                 </div>
             </div>

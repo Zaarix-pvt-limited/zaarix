@@ -1,7 +1,9 @@
 const { sendVideoReadyEmail } = require("../utils/mail");
 const geminiService = require("../Services/gemini.Service");
+const sanitizeEmotion = require("../Services/gemini.Service").sanitizeEmotion;
 const audioService = require("../Services/audio.Service");
 const imageService = require("../Services/image.Service");
+const Avatar = require("../Model/avatar.Model");
 
 /**
  * Analyze chat content (text or image) using Gemini
@@ -30,6 +32,8 @@ const analyzeChat = async (req, res) => {
             analysisResult = await geminiService.analyzeChatContent({ text });
         }
 
+        console.log("🤖 AI Analysis Result:", JSON.stringify(analysisResult, null, 2));
+
         res.status(200).json({
             success: true,
             data: analysisResult
@@ -49,7 +53,7 @@ const analyzeChat = async (req, res) => {
  */
 const createVideo = async (req, res) => {
     try {
-        const { email, prompt, imageUrl, chatData } = req.body;
+        const { email, prompt, imageUrl, chatData, avatarIdA, avatarIdB } = req.body;
 
         if (!email) {
             return res.status(400).json({
@@ -58,35 +62,72 @@ const createVideo = async (req, res) => {
             });
         }
 
-        // 1. Immediate response to user (optional, but if we want to process in background we need a queue)
-        // For now, let's keep it synchronous as per user request to "console the data" in frontend
-
         console.log(`[Video Controller] Starting audio generation for ${email}...`);
 
-        // 2. Generate Audio and Upload to Cloudinary
-        const enrichedChatData = await audioService.processConversationAudio(chatData);
+        // 1. Generate Audio — returns a plain array of messages with audioUrl
+        let enrichedMessages = await audioService.processConversationAudio(chatData);
 
-        console.log(`[Video Controller] Audio generation complete.`);
+        console.log(`[Video Controller] Audio generation complete. Messages: ${enrichedMessages.length}`);
 
-        // 3. (Optional) Send email notification still? 
-        // The user didn't explicitly ask to remove it, but the focus is on "consoling data in frontend".
-        // Let's keep the email logic as a nice-to-have but non-blocking.
+        // 2. Always sanitize emotions to valid DB labels
 
-        // Mock video link (since we are only doing audio for now as per "half of work is done")
-        // The "Video" is actually just the data for the frontend to render.
+        enrichedMessages = enrichedMessages.map(msg => {
+            const validEmotion = sanitizeEmotion(msg.emotion);
+            console.log(`[Emotion] "${msg.text.slice(0, 20)}" | ${msg.emotion} → ${validEmotion}`);
+            return { ...msg, emotion: validEmotion };
+        });
+
+        // 3. Resolve avatar emotion URLs based on speaker identity (A or B)
+        console.log(`[Video Controller] Resolving avatars - Speaker A: ${avatarIdA}, Speaker B: ${avatarIdB}`);
+
+        const avatarIds = [];
+        if (avatarIdA) avatarIds.push(avatarIdA);
+        if (avatarIdB) avatarIds.push(avatarIdB);
+
+        let avatarsMap = {};
+
+        if (avatarIds.length > 0) {
+            try {
+                const avatars = await Avatar.find({ _id: { $in: avatarIds } });
+                avatars.forEach(av => {
+                    avatarsMap[av._id.toString()] = av;
+                });
+                console.log(`[Video Controller] Found ${avatars.length} avatar documents.`);
+            } catch (avatarErr) {
+                console.error("[Video Controller] Avatar lookup failed:", avatarErr.message);
+            }
+        }
+
+        enrichedMessages = enrichedMessages.map(msg => {
+            // Determine which avatar ID applies to this message
+            let activeAvatarId = null;
+            if (msg.speaker === 'A') activeAvatarId = avatarIdA;
+            if (msg.speaker === 'B') activeAvatarId = avatarIdB;
+
+            let resolvedUrl = null;
+
+            if (activeAvatarId && avatarsMap[activeAvatarId]) {
+                resolvedUrl = avatarsMap[activeAvatarId].getEmotionUrl(msg.emotion);
+                console.log(`[Avatar] Speaker ${msg.speaker} ("${msg.text.slice(0, 15)}...") | ${msg.emotion} → ${resolvedUrl}`);
+            } else {
+                console.log(`[Avatar] No avatar found for Speaker ${msg.speaker}`);
+            }
+
+            // Only attach avatarUrl if resolved; otherwise frontend falls back to static preview
+            return resolvedUrl ? { ...msg, avatarUrl: resolvedUrl } : msg;
+        });
+
         const videoLink = "https://remotion-player-url.com/render";
         const name = email.split("@")[0];
 
-        // Fire and forget email
         sendVideoReadyEmail(email, name, videoLink).catch(err => console.error("Email failed", err));
 
-        // 4. Return the enriched data
         res.status(200).json({
             success: true,
             message: "Audio generation complete.",
             data: {
-                chatData: enrichedChatData,
-                videoLink // conceptual
+                chatData: enrichedMessages,
+                videoLink
             }
         });
 
