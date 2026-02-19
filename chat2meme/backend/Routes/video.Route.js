@@ -20,4 +20,13 @@ router.get("/avatars", VideoController.getAvatarImages);
 // Get available voices from ElevenLabs
 router.get("/voices", VideoController.getVoices);
 
+// Download rendered video
+router.get("/download", VideoController.downloadVideo);
+
+// Render with Remotion and download MP4
+router.post("/render-download", VideoController.renderAndDownloadVideo);
+
+// List all generated videos (for the dashboard)
+router.get("/list", VideoController.listVideos);
+
 module.exports = router;

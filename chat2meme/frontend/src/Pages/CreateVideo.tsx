@@ -196,6 +196,7 @@ const CreateVideo = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [showVideo, setShowVideo] = useState(false);
     const [generatedData, setGeneratedData] = useState<any>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const handleGenerate = async () => {
         if (!analysisResult) {
@@ -257,6 +258,62 @@ const CreateVideo = () => {
             alert("Failed to connect to generation service.");
         } finally {
             setIsGenerating(false);
+        }
+    };
+
+    const handleDownload = async () => {
+        if (!generatedData || generatedData.length === 0) {
+            alert("Generate a preview first before downloading.");
+            return;
+        }
+
+        setIsDownloading(true);
+        try {
+            const fileName = `chat2meme-${Date.now()}.mp4`;
+            const avatar1 = analysisResult?.speakers[0]?.avatarId
+                ? avatars.find(a => a.id === analysisResult.speakers[0].avatarId)?.url || ""
+                : "";
+            const avatar2 = analysisResult?.speakers[1]?.avatarId
+                ? avatars.find(a => a.id === analysisResult.speakers[1].avatarId)?.url || ""
+                : "";
+
+            const response = await fetch('http://localhost:3000/api/video/render-download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    conversation: generatedData,
+                    avatar1,
+                    avatar2,
+                    backgroundImage: selectedTheme || "",
+                    fileName
+                })
+            });
+
+            if (!response.ok) {
+                let errorMessage = "Download request failed";
+                try {
+                    const errorJson = await response.json();
+                    errorMessage = errorJson.message || errorJson.error || errorMessage;
+                } catch {
+                    // Keep generic message if non-JSON response
+                }
+                throw new Error(errorMessage);
+            }
+
+            const blob = await response.blob();
+            const localUrl = window.URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = localUrl;
+            anchor.download = fileName;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            window.URL.revokeObjectURL(localUrl);
+        } catch (error) {
+            console.error("Download failed:", error);
+            alert(error instanceof Error ? error.message : "Could not download video. Please try again.");
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -799,10 +856,11 @@ const CreateVideo = () => {
                             <div className="mt-4 flex justify-between items-center text-gray-400 text-sm">
                                 <span>Preview Mode</span>
                                 <button
-                                    onClick={() => alert("Download feature coming soon!")}
-                                    className="text-indigo-500 hover:text-indigo-400 font-medium"
+                                    onClick={handleDownload}
+                                    disabled={isDownloading || !generatedData}
+                                    className="text-indigo-500 hover:text-indigo-400 font-medium disabled:text-gray-500 disabled:cursor-not-allowed"
                                 >
-                                    Download
+                                    {isDownloading ? "Rendering..." : "Render & Download"}
                                 </button>
                             </div>
                         </motion.div>
@@ -814,5 +872,3 @@ const CreateVideo = () => {
 };
 
 export default CreateVideo;
-
-
