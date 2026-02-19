@@ -111,6 +111,21 @@ const processConversationAudio = async (chatData) => {
     return enrichedConversation;
 };
 
+/**
+ * Fetch all available voices from ElevenLabs
+ * @returns {Promise<Array>} - Array of voice objects
+ */
+const getVoices = async () => {
+    try {
+        const response = await client.voices.getAll();
+        return response.voices;
+    } catch (error) {
+        console.error('ElevenLabs Get Voices Error:', error);
+        throw error;
+    }
+};
+
 module.exports = {
-    processConversationAudio
+    processConversationAudio,
+    getVoices
 };

@@ -181,9 +181,27 @@ const getAvatarImages = async (req, res) => {
     }
 };
 
+const getVoices = async (req, res) => {
+    try {
+        const voices = await audioService.getVoices();
+        res.status(200).json({
+            success: true,
+            data: voices
+        });
+    } catch (error) {
+        console.error("Get Voices Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch voices",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createVideo,
     analyzeChat,
     getBackgroundImages,
-    getAvatarImages
+    getAvatarImages,
+    getVoices
 };

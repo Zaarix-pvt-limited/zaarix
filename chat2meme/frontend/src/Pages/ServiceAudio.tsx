@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, Play, Plus, ChevronRight, Globe, Mic, BookOpen, Users, GraduationCap, Megaphone, Monitor, MoreHorizontal } from 'lucide-react';
+import { Search, Filter, Play, Pause, Plus, ChevronRight, Globe, Mic, BookOpen, Users, GraduationCap, Megaphone, Monitor, MoreHorizontal } from 'lucide-react';
 
 const categories = [
     { icon: Globe, label: 'Language' },
@@ -12,57 +12,6 @@ const categories = [
     { icon: Megaphone, label: 'Advertisement' },
 ];
 
-const trendingVoices = [
-    {
-        name: 'Krishna',
-        description: 'Energetic and Expressive',
-        category: 'Conversational',
-        tags: ['Hindi', '+19'],
-        gradient: 'from-yellow-400 to-orange-500',
-        verified: true
-    },
-    {
-        name: 'Raju',
-        description: 'Clear, Natural and Warm',
-        category: 'Conversational',
-        tags: ['Hindi', '+9'],
-        gradient: 'from-green-400 to-emerald-600',
-        verified: true
-    },
-    {
-        name: 'Ruhaan',
-        description: 'Clear and Confident',
-        category: 'Social Media',
-        tags: ['Hindi', '+12'],
-        gradient: 'from-pink-500 to-rose-500',
-        verified: true
-    },
-    {
-        name: 'Simran',
-        description: 'Bright, Expressive and Friendly',
-        category: 'Conversational',
-        tags: ['Hindi', '+5'],
-        gradient: 'from-teal-400 to-cyan-500',
-        verified: true
-    },
-    {
-        name: 'Bunty',
-        description: 'Smart Friendly Assistant',
-        category: 'Conversational',
-        tags: ['Hindi'],
-        gradient: 'from-red-400 to-red-600',
-        verified: false
-    },
-    {
-        name: 'Zara',
-        description: 'Sweet, Admiring and Approachable',
-        category: 'Conversational',
-        tags: ['Hindi', '+9'],
-        gradient: 'from-lime-400 to-green-500',
-        verified: true
-    }
-];
-
 const handpicked = [
     { title: 'Best voices for Eleven v3', id: 'v3', bg: 'bg-gradient-to-br from-purple-900 to-slate-900' },
     { title: 'Popular Tiktok voices', id: 'tiktok', bg: 'bg-gradient-to-br from-orange-100 to-orange-200' },
@@ -70,6 +19,76 @@ const handpicked = [
 ];
 
 const ServiceAudio = () => {
+    const [voices, setVoices] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+    const [playingVoiceId, setPlayingVoiceId] = React.useState<string | null>(null);
+    const [currentAudio, setCurrentAudio] = React.useState<HTMLAudioElement | null>(null);
+
+    React.useEffect(() => {
+        return () => {
+            // Cleanup audio on unmount
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+        }
+    }, [currentAudio]);
+
+    React.useEffect(() => {
+        const fetchVoices = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/video/voices');
+                const result = await response.json();
+                if (result.success) {
+                    console.log("Fetched voices:", result.data);
+                    setVoices(result.data);
+                } else {
+                    setError("Failed to load voices");
+                }
+            } catch (err) {
+                console.error("Error loading voices:", err);
+                setError("Error loading voices");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchVoices();
+    }, []);
+
+    const handlePlay = (voiceId: string, previewUrl: string) => {
+        console.log("Attempting to play:", voiceId, previewUrl);
+        // If clicking the same voice that is playing, pause it
+        if (playingVoiceId === voiceId) {
+            if (currentAudio) {
+                currentAudio.pause();
+                setPlayingVoiceId(null);
+            }
+            return;
+        }
+
+        // Stop currently playing audio if any
+        if (currentAudio) {
+            currentAudio.pause();
+        }
+
+        if (!previewUrl) {
+            console.error("No preview URL for voice:", voiceId);
+            return;
+        }
+
+        const audio = new Audio(previewUrl);
+        audio.onended = () => {
+            setPlayingVoiceId(null);
+        };
+
+        audio.play()
+            .then(() => console.log("Audio started playing"))
+            .catch(e => console.error("Playback failed:", e));
+        setCurrentAudio(audio);
+        setPlayingVoiceId(voiceId);
+    };
+
     return (
         <div className="p-6 h-full overflow-y-auto w-full bg-white dark:bg-[#171e2e] text-gray-900 dark:text-white">
             {/* Header / Search */}
@@ -122,44 +141,72 @@ const ServiceAudio = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {trendingVoices.map((voice, idx) => (
-                        <div key={idx} className="bg-gray-50 dark:bg-[#303c56] p-4 rounded-md border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all cursor-pointer group">
-                            <div className="flex items-start justify-between mb-3">
-                                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${voice.gradient} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
-                                    {voice.name[0]}
-                                    {voice.verified && (
+                    {loading && <p className="text-gray-500">Loading voices...</p>}
+                    {error && <p className="text-red-500">{error}</p>}
+                    {!loading && voices.map((voice, idx) => {
+                        // Random gradient for visual consistency
+                        const gradients = [
+                            'from-yellow-400 to-orange-500',
+                            'from-green-400 to-emerald-600',
+                            'from-pink-500 to-rose-500',
+                            'from-teal-400 to-cyan-500',
+                            'from-red-400 to-red-600',
+                            'from-lime-400 to-green-500',
+                            'from-blue-400 to-indigo-600',
+                            'from-purple-400 to-violet-600'
+                        ];
+                        const gradient = gradients[idx % gradients.length];
+
+                        return (
+                            <div key={voice.voiceId || idx} className="bg-gray-50 dark:bg-[#303c56] p-4 rounded-md border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all cursor-pointer group h-full flex flex-col justify-between">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
+                                        {voice.name[0]}
+                                        {/* ElevenLabs doesn't send verification status easily, assume true for high quality voices */}
                                         <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-0.5 border-2 border-[#303c56]">
                                             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                             </svg>
                                         </div>
-                                    )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent card click
+                                                // Log the voice object to confirm properties
+                                                console.log("Play clicked for:", voice);
+                                                handlePlay(voice.voiceId, voice.previewUrl);
+                                            }}
+                                        >
+                                            {playingVoiceId === voice.voiceId ? (
+                                                <Pause size={20} fill="currentColor" />
+                                            ) : (
+                                                <Play size={20} fill="currentColor" />
+                                            )}
+                                        </button>
+                                        <button className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5 rounded-sm text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors shadow-sm">
+                                            Add
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400">
-                                        <Play size={20} fill="currentColor" />
-                                    </button>
-                                    <button className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5 rounded-sm text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors shadow-sm">
-                                        Add
-                                    </button>
+
+                                <div>
+                                    <h3 className="font-semibold text-base mb-0.5">{voice.name}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{voice.category || 'Generated'}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 font-medium mb-3 line-clamp-1">{voice.labels?.description || voice.description || 'No description available'}</p>
+
+                                    <div className="flex gap-2 flex-wrap">
+                                        {voice.labels && Object.entries(voice.labels).slice(0, 3).map(([key, value], i) => (
+                                            <span key={i} className="text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700">
+                                                {String(value)}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-
-                            <div>
-                                <h3 className="font-semibold text-base mb-0.5">{voice.name}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{voice.category}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-300 font-medium mb-3 line-clamp-1">{voice.description}</p>
-
-                                <div className="flex gap-2 flex-wrap">
-                                    {voice.tags.map((tag, i) => (
-                                        <span key={i} className="text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700">
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             </div>
 

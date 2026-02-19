@@ -17,4 +17,7 @@ router.get("/backgrounds", VideoController.getBackgroundImages);
 // Get avatar images from Cloudinary
 router.get("/avatars", VideoController.getAvatarImages);
 
+// Get available voices from ElevenLabs
+router.get("/voices", VideoController.getVoices);
+
 module.exports = router;
